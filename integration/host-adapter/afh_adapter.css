@@ -1,0 +1,188 @@
+/*!
+ * APEX Feedback Hub — host adapter styles (companion to afh_adapter.js 1.0.0).
+ * Loaded on the HOST application's Global Page. Only .afh-* selectors (plus the
+ * html.afh-lock scroll lock the adapter toggles); no bare element selectors, so
+ * nothing in the host theme is affected. Overlay z-index 10000. Light + dark,
+ * reduced-motion safe, :focus-visible rings.
+ */
+
+:root {
+  --afh-ov-backdrop: rgba(15, 23, 32, .55);
+  --afh-ov-paper: #ffffff;
+  --afh-ov-ink: #17212b;
+  --afh-ov-ink-soft: #4b5563;
+  --afh-ov-border: #d5dbe0;
+  --afh-ov-accent: #0f6e63;
+  --afh-ov-accent-ink: #ffffff;
+  --afh-ov-danger: #b42318;
+  --afh-ov-danger-bg: #fdecea;
+  --afh-ov-focus: #2457d6;
+  --afh-ov-radius: 10px;
+  --afh-ov-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  --afh-ov-ease: 160ms ease-out;
+  --afh-ov-z: 10000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --afh-ov-backdrop: rgba(0, 0, 0, .7);
+    --afh-ov-paper: #161b22;
+    --afh-ov-ink: #e7ebef;
+    --afh-ov-ink-soft: #b6bec8;
+    --afh-ov-border: #3a4450;
+    --afh-ov-accent: #4fc3b3;
+    --afh-ov-accent-ink: #06201c;
+    --afh-ov-danger: #ff8a80;
+    --afh-ov-danger-bg: #3a1b19;
+    --afh-ov-focus: #8ab4ff;
+  }
+}
+
+/* ------------------------------------------------------------- scroll lock */
+
+html.afh-lock { overflow: hidden; }
+
+/* --------------------------------------------------------------- launcher */
+
+.afh-launcher {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: calc(var(--afh-ov-z) - 1);
+  padding: .6rem 1rem;
+  border: 1px solid var(--afh-ov-accent);
+  border-radius: 999px;
+  background: var(--afh-ov-accent);
+  color: var(--afh-ov-accent-ink);
+  font: 600 .85rem/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+  cursor: pointer;
+  transition: transform var(--afh-ov-ease), box-shadow var(--afh-ov-ease);
+}
+
+.afh-launcher:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, .22); }
+.afh-launcher:focus-visible, .afh-close:focus-visible, .afh-btn:focus-visible { outline: 2px solid var(--afh-ov-focus); outline-offset: 2px; }
+.afh-launcher[aria-busy="true"], .afh-busy { cursor: progress; opacity: .75; }
+.afh-launcher[aria-busy="true"]::after { content: "\2026"; }
+
+/* ---------------------------------------------------------------- overlay */
+
+.afh-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--afh-ov-z);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3vh 1rem;
+  background: var(--afh-ov-backdrop);
+  overflow-y: auto;
+  animation: afh-fade var(--afh-ov-ease) both;
+}
+
+.afh-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 96vw);
+  max-width: 100%;
+  max-height: 94vh;
+  border: 1px solid var(--afh-ov-border);
+  border-radius: var(--afh-ov-radius);
+  background: var(--afh-ov-paper);
+  color: var(--afh-ov-ink);
+  box-shadow: var(--afh-ov-shadow);
+  overflow: hidden;
+  animation: afh-rise 200ms ease-out both;
+}
+
+.afh-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .7rem .85rem .7rem 1.1rem;
+  border-bottom: 1px solid var(--afh-ov-border);
+}
+
+.afh-dialog-title { font: 600 .95rem/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+.afh-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--afh-ov-ink-soft);
+  font: 400 1.4rem/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background var(--afh-ov-ease);
+}
+
+.afh-close:hover { background: rgba(127, 127, 127, .15); }
+
+/* status + confirm strips */
+.afh-status {
+  padding: .6rem 1.1rem;
+  color: var(--afh-ov-ink-soft);
+  font: .85rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.afh-status[hidden] { display: none; }
+.afh-status-error { color: var(--afh-ov-danger); background: var(--afh-ov-danger-bg); border-bottom: 1px solid var(--afh-ov-border); }
+.afh-status-error::before { content: "Notice: "; font-weight: 700; }
+
+.afh-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem 1.1rem;
+  border-bottom: 1px solid var(--afh-ov-border);
+  background: var(--afh-ov-danger-bg);
+  color: var(--afh-ov-ink);
+  font: .85rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.afh-confirm[hidden] { display: none; }
+
+.afh-btn {
+  padding: .4rem .8rem;
+  border: 1px solid var(--afh-ov-border);
+  border-radius: 6px;
+  background: var(--afh-ov-paper);
+  color: var(--afh-ov-ink);
+  font: 600 .8rem/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.afh-btn-danger { border-color: var(--afh-ov-danger); background: var(--afh-ov-danger); color: #ffffff; }
+
+/* iframe */
+.afh-frame {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  height: 70vh;
+  border: 0;
+  background: var(--afh-ov-paper);
+  transition: height var(--afh-ov-ease);
+}
+
+.afh-frame-hidden { height: 0 !important; min-height: 0; visibility: hidden; }
+
+.afh-sentinel { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+
+/* --------------------------------------------------------------- motion */
+
+@keyframes afh-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes afh-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .afh-overlay, .afh-dialog { animation: none; }
+  .afh-launcher, .afh-close, .afh-frame { transition: none; }
+}
+
+@media (max-width: 640px) {
+  .afh-overlay { padding: 0; }
+  .afh-dialog { width: 100vw; max-height: 100vh; border-radius: 0; }
+}

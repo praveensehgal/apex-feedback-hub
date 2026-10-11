@@ -1,0 +1,24 @@
+-- Package bodies, in dependency order (generated from 06_packages.sql order)
+@@../package_bodies/AFH_AUDIT_PKG.pkb
+@@../package_bodies/AFH_SECURITY_INT_PKG.pkb
+@@../package_bodies/AFH_SECURITY_PKG.pkb
+@@../package_bodies/AFH_REGISTRY_INT_PKG.pkb
+@@../package_bodies/AFH_REGISTRY_PKG.pkb
+@@../package_bodies/AFH_TICKET_INT_PKG.pkb
+@@../package_bodies/AFH_TICKET_PKG.pkb
+@@../package_bodies/AFH_CONTEXT_PKG.pkb
+@@../package_bodies/AFH_ATTACHMENT_PKG.pkb
+@@../package_bodies/AFH_COMMENT_PKG.pkb
+@@../package_bodies/AFH_SEARCH_PKG.pkb
+@@../package_bodies/AFH_UI_PKG.pkb
+@@../package_bodies/AFH_WORKFLOW_PKG.pkb
+@@../package_bodies/AFH_WORKFLOW_INT_PKG.pkb
+@@../package_bodies/AFH_NOTIFICATION_INT_PKG.pkb
+@@../package_bodies/AFH_NOTIFICATION_PKG.pkb
+@@../package_bodies/AFH_REPORTING_PKG.pkb
+@@../package_bodies/AFH_RETENTION_PKG.pkb
+@@../package_bodies/AFH_LAUNCH_PKG.pkb
+@@../package_bodies/AFH_LICENSE_PKG.pkb
+@@../package_bodies/AFH_TAXONOMY_PKG.pkb
+@@../package_bodies/AFH_SUBMIT_PKG.pkb
+@@../package_bodies/AFH_THEME_PKG.pkb

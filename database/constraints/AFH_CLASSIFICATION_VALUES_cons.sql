@@ -1,0 +1,46 @@
+-- Constraints for AFH_CLASSIFICATION_VALUES
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_CLASSIFICATION_VALUES_UK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_classification_values ADD CONSTRAINT AFH_CLASSIFICATION_VALUES_UK1 UNIQUE (class_type, value_code)]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_CLASSIFICATION_VALUES_CK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_classification_values ADD CONSTRAINT AFH_CLASSIFICATION_VALUES_CK1 CHECK (class_type IN ('PRIORITY','SEVERITY','IMPACT'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_CLASSIFICATION_VALUES_CK2';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_classification_values ADD CONSTRAINT AFH_CLASSIFICATION_VALUES_CK2 CHECK (REGEXP_LIKE(value_code, '^[A-Z][A-Z0-9_]{0,29}$'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_CLASSIFICATION_VALUES_CK3';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_classification_values ADD CONSTRAINT AFH_CLASSIFICATION_VALUES_CK3 CHECK (is_active IN ('Y','N'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_CLASSIFICATION_VALUES_CK4';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_classification_values ADD CONSTRAINT AFH_CLASSIFICATION_VALUES_CK4 CHECK (is_default IN ('Y','N'))]';
+  END IF;
+END;
+/

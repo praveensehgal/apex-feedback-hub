@@ -1,0 +1,25 @@
+-- Package specifications, in dependency order
+@@../packages/AFH_COMPILE_FLAGS.pks
+@@../packages/AFH_AUDIT_PKG.pks
+@@../packages/AFH_SECURITY_INT_PKG.pks
+@@../packages/AFH_SECURITY_PKG.pks
+@@../packages/AFH_REGISTRY_INT_PKG.pks
+@@../packages/AFH_REGISTRY_PKG.pks
+@@../packages/AFH_TICKET_INT_PKG.pks
+@@../packages/AFH_TICKET_PKG.pks
+@@../packages/AFH_CONTEXT_PKG.pks
+@@../packages/AFH_ATTACHMENT_PKG.pks
+@@../packages/AFH_COMMENT_PKG.pks
+@@../packages/AFH_SEARCH_PKG.pks
+@@../packages/AFH_UI_PKG.pks
+@@../packages/AFH_WORKFLOW_PKG.pks
+@@../packages/AFH_WORKFLOW_INT_PKG.pks
+@@../packages/AFH_NOTIFICATION_INT_PKG.pks
+@@../packages/AFH_NOTIFICATION_PKG.pks
+@@../packages/AFH_REPORTING_PKG.pks
+@@../packages/AFH_RETENTION_PKG.pks
+@@../packages/AFH_LAUNCH_PKG.pks
+@@../packages/AFH_LICENSE_PKG.pks
+@@../packages/AFH_TAXONOMY_PKG.pks
+@@../packages/AFH_SUBMIT_PKG.pks
+@@../packages/AFH_THEME_PKG.pks

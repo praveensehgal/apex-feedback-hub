@@ -1,0 +1,37 @@
+-- Constraints for AFH_NOTIFICATION_TEMPLATES
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_NOTIFICATION_TEMPLATES_UK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_notification_templates ADD CONSTRAINT AFH_NOTIFICATION_TEMPLATES_UK1 UNIQUE (event_code, channel_code)]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_NOTIFICATION_TEMPLATES_CK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_notification_templates ADD CONSTRAINT AFH_NOTIFICATION_TEMPLATES_CK1 CHECK (REGEXP_LIKE(event_code, '^[A-Z][A-Z0-9_]{0,29}$'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_NOTIFICATION_TEMPLATES_CK2';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_notification_templates ADD CONSTRAINT AFH_NOTIFICATION_TEMPLATES_CK2 CHECK (channel_code IN ('IN_APP','EMAIL','DIGEST'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_NOTIFICATION_TEMPLATES_CK3';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_notification_templates ADD CONSTRAINT AFH_NOTIFICATION_TEMPLATES_CK3 CHECK (is_active IN ('Y','N'))]';
+  END IF;
+END;
+/

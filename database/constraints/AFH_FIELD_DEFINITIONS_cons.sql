@@ -1,0 +1,37 @@
+-- Constraints for AFH_FIELD_DEFINITIONS
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_FIELD_DEFINITIONS_UK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_field_definitions ADD CONSTRAINT AFH_FIELD_DEFINITIONS_UK1 UNIQUE (field_code)]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_FIELD_DEFINITIONS_CK1';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_field_definitions ADD CONSTRAINT AFH_FIELD_DEFINITIONS_CK1 CHECK (REGEXP_LIKE(field_code, '^[A-Z][A-Z0-9_]{0,29}$'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_FIELD_DEFINITIONS_CK2';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_field_definitions ADD CONSTRAINT AFH_FIELD_DEFINITIONS_CK2 CHECK (data_type IN ('TEXT','TEXTAREA','NUMBER','DATE','SELECT','YN'))]';
+  END IF;
+END;
+/
+DECLARE
+  l_cnt PLS_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO l_cnt FROM user_constraints WHERE constraint_name = 'AFH_FIELD_DEFINITIONS_CK3';
+  IF l_cnt = 0 THEN
+    EXECUTE IMMEDIATE q'[ALTER TABLE afh_field_definitions ADD CONSTRAINT AFH_FIELD_DEFINITIONS_CK3 CHECK (is_active IN ('Y','N'))]';
+  END IF;
+END;
+/
