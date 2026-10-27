@@ -2,7 +2,7 @@
 CREATE OR REPLACE FORCE VIEW afh_v_integration_summary AS
 SELECT a.application_id, a.app_key, a.display_name AS application_name, a.identity_mode,
        a.adapter_version, NVL(a.min_adapter_version, afh_security_pkg.config_value('MIN_ADAPTER_VERSION')) AS min_adapter_version,
-       CASE WHEN afh_registry_pkg.is_adapter_supported(a.application_id, a.adapter_version) THEN 'Y' ELSE 'N' END AS adapter_supported_yn,
+       afh_registry_int_pkg.is_adapter_supported_yn(a.application_id, a.adapter_version) AS adapter_supported_yn,
        (SELECT MAX(ie.event_at) FROM afh_integration_events ie WHERE ie.application_id = a.application_id AND ie.event_code = 'LAUNCH') AS last_launch_at,
        (SELECT COUNT(*) FROM afh_integration_events ie WHERE ie.application_id = a.application_id AND ie.event_code = 'LAUNCH' AND ie.event_at >= SYSTIMESTAMP - 7) AS launches_7d,
        (SELECT COUNT(*) FROM afh_integration_events ie WHERE ie.application_id = a.application_id AND ie.event_code = 'LAUNCH' AND ie.result_code IN ('FAILED', 'REJECTED', 'MISMATCH') AND ie.event_at >= SYSTIMESTAMP - 7) AS failures_7d,

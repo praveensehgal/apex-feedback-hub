@@ -25,7 +25,7 @@ DECLARE
 BEGIN
   -- Product and branding (whitelabel from configuration)
   put('PRODUCT_NAME',        'APEX Feedback Hub', 'TEXT',  'Product name shown in the header, titles and mail');
-  put('PRODUCT_VERSION',     '0.1.0',             'TEXT',  'Installed product version; maintained by the installer', 'N', 'N');
+  put('PRODUCT_VERSION',     '0.1.1',             'TEXT',  'Installed product version; maintained by the installer', 'N', 'N');
   put('BRAND_LOGO_URL',      NULL,                'URL',   'Logo URL (workspace or application static file); blank for the product default');
   put('BRAND_PRIMARY_COLOR', '#165F59',           'COLOR', 'Primary brand color (hex)');
   put('BRAND_ACCENT_COLOR',  '#1F756C',           'COLOR', 'Accent brand color (hex)');

@@ -14,7 +14,7 @@ SET TIMING OFF
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK
 WHENEVER OSERROR  EXIT FAILURE ROLLBACK
 
-DEFINE afh_product_version = '0.1.0'
+DEFINE afh_product_version = '0.1.1'
 
 PROMPT ==== APEX Feedback Hub &afh_product_version — installing into schema
 SELECT USER AS schema_name, SYSTIMESTAMP AS started_at FROM dual;

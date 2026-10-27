@@ -19,7 +19,7 @@ the UI. Keys marked *per tier* normally differ between DEV, TEST and PROD. Types
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `PRODUCT_NAME` | TEXT | `APEX Feedback Hub` | Name shown in the header, page titles and mail subjects |
-| `PRODUCT_VERSION` | TEXT | `0.1.0` | Installed product version. *Installer.* The pre-flight check compares it with the bundle version |
+| `PRODUCT_VERSION` | TEXT | `0.1.1` | Installed product version. *Installer.* The pre-flight check compares it with the bundle version |
 | `BRAND_LOGO_URL` | URL | *(blank)* | Logo URL (a workspace or application static file). Blank shows the product default |
 | `BRAND_PRIMARY_COLOR` | COLOR | `#165F59` | Primary brand color |
 | `BRAND_ACCENT_COLOR` | COLOR | `#1F756C` | Accent brand color |

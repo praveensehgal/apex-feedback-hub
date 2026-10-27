@@ -240,8 +240,10 @@ package.
    `DEFINE afh_keep_data = 'YES'` drops code only and keeps the tables.
 4. DBA: `DROP USER afh CASCADE` if the schema is no longer wanted.
 
-Upgrades between product versions follow `docs/UPGRADE-AND-ROLLBACK.md`; this release (0.1.0) is a
-first install and has no upgrade path yet.
+Upgrades between product versions follow `docs/UPGRADE-AND-ROLLBACK.md`; this release (0.1.1) is a
+first install and has no upgrade path yet. 0.1.1 replaces 0.1.0, which did not install on 19c
+(ORA-00920 in `AFH_V_INTEGRATION_SUMMARY`); a partial 0.1.0 install is repaired by running the
+0.1.1 `install.sql` over it.
 
 ## 9. What the bundle does not include
 
