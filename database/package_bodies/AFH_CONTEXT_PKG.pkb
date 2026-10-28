@@ -386,7 +386,8 @@ CREATE OR REPLACE PACKAGE BODY afh_context_pkg AS
   PROCEDURE downgrade(p_row IN OUT NOCOPY afh_ticket_contexts%ROWTYPE, p_items_truncated IN BOOLEAN) IS
   BEGIN
     IF INSTR(NVL(p_row.partial_reason, ' '), c_partial_truncated) = 0 THEN
-      p_row.partial_reason := SUBSTR(NVL2(p_row.partial_reason, p_row.partial_reason || '; ', '')
+      -- CASE, not NVL2: NVL2 is SQL-only in 19c PL/SQL.
+      p_row.partial_reason := SUBSTR(CASE WHEN p_row.partial_reason IS NOT NULL THEN p_row.partial_reason || '; ' END
                                      || c_partial_truncated, 1, 1000);
     END IF;
     IF p_row.capture_result_code = c_res_success THEN
@@ -431,7 +432,7 @@ CREATE OR REPLACE PACKAGE BODY afh_context_pkg AS
       p_safe_detail    => 'items=' || p_row.item_result_code || ';screenshot=' || p_row.screenshot_result_code
                           || ';debug=' || p_row.debug_result_code || ';itemTotal=' || l_total
                           || ';excluded=' || l_excluded || ';failed=' || l_failed
-                          || NVL2(p_row.partial_reason, ';partial=' || p_row.partial_reason, ''));
+                          || CASE WHEN p_row.partial_reason IS NOT NULL THEN ';partial=' || p_row.partial_reason END);
   END audit_capture;
 
   FUNCTION new_context_row(

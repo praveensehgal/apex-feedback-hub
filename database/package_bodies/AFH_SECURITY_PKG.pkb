@@ -109,10 +109,12 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     p_email        IN VARCHAR2,
     p_touch        IN BOOLEAN) RETURN NUMBER IS
     l_id NUMBER;
+    -- 19c: a BOOLEAN cannot appear inside SQL, so resolve it in PL/SQL first.
+    l_seen afh_users.last_seen_at%TYPE := CASE WHEN p_touch THEN SYSTIMESTAMP END;
   BEGIN
     INSERT INTO afh_users (subject_canonical, subject_display, display_name, email, last_seen_at)
     VALUES (p_canonical, SUBSTR(TRIM(p_subject), 1, 255), SUBSTR(p_display_name, 1, 255),
-            SUBSTR(p_email, 1, 320), CASE WHEN p_touch THEN SYSTIMESTAMP END)
+            SUBSTR(p_email, 1, 320), l_seen)
     RETURNING user_id INTO l_id;
     afh_audit_pkg.log_event(
       p_entity_type => afh_audit_pkg.c_entity_user,
@@ -131,6 +133,8 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     p_display_name IN VARCHAR2,
     p_email        IN VARCHAR2,
     p_touch        IN BOOLEAN) IS
+    -- 19c: a BOOLEAN cannot appear inside SQL, so resolve it in PL/SQL first.
+    l_touch VARCHAR2(1) := CASE WHEN p_touch THEN 'Y' ELSE 'N' END;
   BEGIN
     IF p_display_name IS NULL AND p_email IS NULL AND NOT p_touch THEN
       RETURN;
@@ -138,7 +142,7 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     UPDATE afh_users
        SET display_name = COALESCE(SUBSTR(p_display_name, 1, 255), display_name),
            email        = COALESCE(SUBSTR(p_email, 1, 320), email),
-           last_seen_at = CASE WHEN p_touch THEN SYSTIMESTAMP ELSE last_seen_at END
+           last_seen_at = CASE WHEN l_touch = 'Y' THEN SYSTIMESTAMP ELSE last_seen_at END
      WHERE user_id = p_user_id;
   END refresh_user;
 
