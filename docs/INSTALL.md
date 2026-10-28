@@ -152,19 +152,24 @@ COMMIT;
 ```
 
 **First administrator.** Nobody can open Users and Roles until someone holds `AFH_ADMIN`. Grant
-it once by SQL, using the exact `APP_USER` value the host shows for that person:
+it once by SQL connected as the product schema, using the exact `APP_USER` value the host shows
+for that person. `bootstrap_admin` works only while no active administrator exists and refuses
+afterwards (`AFH-AUTH-002`):
 
 ```sql
-DECLARE
-  l_user_id NUMBER;
 BEGIN
-  l_user_id := afh_security_pkg.ensure_user(p_subject => '<APP_USER value>',
-                                            p_display_name => '<Name>', p_email => '<address or NULL>');
-  afh_security_pkg.grant_role(p_user_id => l_user_id, p_role_code => 'AFH_ADMIN');
+  afh_security_pkg.bootstrap_admin(p_subject => '<APP_USER value>', p_display_name => '<Name>');
   COMMIT;
 END;
 /
 ```
+
+The authorization result is cached per session: sign out of the Hub and back in afterwards.
+Every later grant is made from Users and Roles.
+
+**Everyone else needs nothing.** Any user signed in through the host is registered on first use
+of the Hub and can submit feedback as a plain `USER`. Roles above that are granted from Users
+and Roles; a deactivated user stays locked out.
 
 **Scheduler jobs.** All six are created disabled. Enable per environment:
 

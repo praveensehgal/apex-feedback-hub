@@ -332,9 +332,40 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     RETURN role_of_rank(max_rank(resolve_user(p_user_id), p_application_id, FALSE));
   END highest_role;
 
-  FUNCTION is_authenticated RETURN BOOLEAN IS
+  FUNCTION has_identity RETURN BOOLEAN IS
   BEGIN
-    RETURN is_active_user(current_user_id);
+    RETURN current_subject IS NOT NULL;
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLCODE = error_number(c_err_auth_001) THEN
+        RETURN FALSE;
+      END IF;
+      RAISE;
+  END has_identity;
+
+  -- Every trusted subject is a USER (spec §9.1). In shared-session mode host users never
+  -- pass the Hub's own login, so the first check registers them. Autonomous: it is also
+  -- reached from queries (AFH_V_NAV_ENTRIES), where DML in the caller would be ORA-14551.
+  FUNCTION register_current_user RETURN NUMBER IS
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    l_id NUMBER;
+  BEGIN
+    l_id := touch_current_user;
+    COMMIT;
+    RETURN l_id;
+  EXCEPTION
+    WHEN OTHERS THEN
+      ROLLBACK;
+      RAISE;
+  END register_current_user;
+
+  FUNCTION is_authenticated RETURN BOOLEAN IS
+    l_user NUMBER := current_user_id;
+  BEGIN
+    IF l_user IS NULL AND has_identity THEN
+      l_user := register_current_user;
+    END IF;
+    RETURN is_active_user(l_user);
   END is_authenticated;
 
   FUNCTION is_admin RETURN BOOLEAN IS
@@ -669,6 +700,38 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
   BEGIN
     afh_security_int_pkg.revoke_role(p_user_role_id);
   END revoke_role;
+
+  -- grant_role asserts a signed-in administrator, which a fresh install cannot have.
+  -- The caller commits.
+  PROCEDURE bootstrap_admin(
+    p_subject      IN VARCHAR2,
+    p_display_name IN VARCHAR2 DEFAULT NULL,
+    p_email        IN VARCHAR2 DEFAULT NULL) IS
+    l_admins PLS_INTEGER;
+    l_user   NUMBER;
+    l_id     NUMBER;
+  BEGIN
+    SELECT COUNT(*)
+      INTO l_admins
+      FROM afh_user_roles r
+      JOIN afh_users u ON u.user_id = r.user_id
+     WHERE r.role_code = c_role_admin
+       AND u.is_active = 'Y'
+       AND (r.effective_date IS NULL OR r.effective_date <= SYSTIMESTAMP)
+       AND (r.expiration_date IS NULL OR r.expiration_date > SYSTIMESTAMP);
+    IF l_admins > 0 THEN
+      raise_error(c_err_auth_002, 'An administrator already exists. Grant roles from Users and Roles.');
+    END IF;
+    l_user := upsert_user(p_subject, p_display_name, p_email, FALSE);
+    INSERT INTO afh_user_roles (user_id, role_code) VALUES (l_user, c_role_admin)
+    RETURNING user_role_id INTO l_id;
+    afh_audit_pkg.log_event(
+      p_entity_type => afh_audit_pkg.c_entity_user_role,
+      p_entity_id   => l_id,
+      p_event_code  => 'ROLE_GRANTED',
+      p_summary     => 'Role ' || c_role_admin || ' granted to ' || canonical_subject(p_subject) || ' (first administrator)',
+      p_is_public   => 'N');
+  END bootstrap_admin;
 
   -- =========================================================== crypto primitives
   FUNCTION new_secret RETURN RAW IS

@@ -23,11 +23,13 @@ CREATE OR REPLACE PACKAGE BODY afh_submit_pkg AS
   END context_result;
 
   -- ------------------------------------------------------------------ JSON output helpers
+  -- "message", never "error": apex.server.process treats a JSON "error" key as a failed
+  -- call, shows it as an APEX error and rejects, so the page reported a network failure.
   PROCEDURE out_error(p_message IN VARCHAR2) IS
   BEGIN
     apex_json.open_object;
     apex_json.write('ok', FALSE);
-    apex_json.write('error', SUBSTR(p_message, 1, 500));
+    apex_json.write('message', SUBSTR(p_message, 1, 500));
     apex_json.close_object;
   END out_error;
 

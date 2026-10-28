@@ -87,7 +87,7 @@ CREATE OR REPLACE PACKAGE afh_security_pkg AUTHID DEFINER AS
     p_user_id        IN NUMBER DEFAULT NULL) RETURN VARCHAR2;
 
   -- Convenience predicates for APEX authorization schemes (PL/SQL Function Returning Boolean)
-  FUNCTION is_authenticated RETURN BOOLEAN;                 -- has a subject and an active user row
+  FUNCTION is_authenticated RETURN BOOLEAN;                 -- has a subject and an active user row; registers a first-seen subject
   FUNCTION is_admin RETURN BOOLEAN;
   FUNCTION is_app_owner(p_application_id IN NUMBER DEFAULT NULL) RETURN BOOLEAN;   -- NULL: owner of any app
   FUNCTION is_developer(p_application_id IN NUMBER DEFAULT NULL) RETURN BOOLEAN;   -- NULL: developer on any app
@@ -142,6 +142,12 @@ CREATE OR REPLACE PACKAGE afh_security_pkg AUTHID DEFINER AS
     p_effective_date IN TIMESTAMP WITH LOCAL TIME ZONE DEFAULT NULL,
     p_expiration_date IN TIMESTAMP WITH LOCAL TIME ZONE DEFAULT NULL);
   PROCEDURE revoke_role(p_user_role_id IN NUMBER);
+  -- First install only: grants AFH_ADMIN to p_subject while no active administrator exists,
+  -- with no signed-in identity needed (run as the product schema). AFH-AUTH-002 once one exists.
+  PROCEDURE bootstrap_admin(
+    p_subject      IN VARCHAR2,
+    p_display_name IN VARCHAR2 DEFAULT NULL,
+    p_email        IN VARCHAR2 DEFAULT NULL);
 
   -- ----------------------------------------------------------------- crypto primitives (signed envelope)
   -- 32 random bytes from DBMS_CRYPTO.randombytes.
