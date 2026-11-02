@@ -201,11 +201,21 @@ Hub side, as an administrator:
 1. **Applications and Environments** (page 61) → *Register Application*. App key: a stable
    uppercase code the host will send (for example `FINANCE`); host APEX application ID; owner;
    identity mode *Shared session*.
-2. Add one **environment** per installation (`DEV`, `TEST`, `PROD`) with its base URL pattern,
-   e.g. `https://test.example.gov/%`. Launches from URLs outside the pattern are rejected.
+2. Add one **environment** per installation (`DEV`, `TEST`, `PROD`). The base URL pattern is
+   **optional**; leave it empty unless you want it. It is a misconfiguration guard, not a
+   security control: the URL is reported by the browser, and the session, registry, 120-second
+   expiry and single-use checks are what protect a launch. Set it (e.g.
+   `https://test.example.gov/%`, matched case-insensitively with `LIKE`) only when one Hub serves
+   several environments and you want a host copied with the wrong `AFH_ENV_CODE` refused rather
+   than filed under the wrong environment. It must match the address users actually type,
+   including any port and path. A mismatch shows users `AFH-CTX-001`; the reason (`URL_POLICY`)
+   is in `AFH_INTEGRATION_EVENTS.SAFE_DETAIL`.
 3. **Routing and Ownership** (page 62): optional rules; unmatched tickets go to the application
    owner, then to `FALLBACK_OWNER_SUBJECT`.
-4. **Users and Roles** (page 63): grant `DEVELOPER`, `TESTER`, `APP_OWNER` as needed.
+4. **Users and Roles** (page 63): grant `DEVELOPER`, `TESTER`, `APP_OWNER` as needed. People who
+   only submit feedback need nothing: anyone signed in through the host is registered as a user
+   on first use. `AFH_ADMIN` already includes every other role. The grant page lists only users
+   who have opened the Hub at least once.
 
 Host side, in the host application (full detail in `integration/host-adapter/README.md`):
 
@@ -217,7 +227,7 @@ Host side, in the host application (full detail in `integration/host-adapter/REA
    application ID is never typed into a page.
 4. A Global Page (page 0) Static Content region, template *Blank with Attributes*, that publishes
    `window.AFH_CONFIG = { hubAppId: '&HUB_APP_ID.', appKey: '&AFH_APP_KEY.', envCode: '&AFH_ENV_CODE.',
-   mode: 'SHARED_SESSION', adapterVersion: '1.0.0', createButton: false, buttonSelector: '.afh-feedback-entry a' };`
+   mode: 'SHARED_SESSION', adapterVersion: '1.0.1', createButton: false, buttonSelector: '.afh-feedback-entry a' };`
 5. A navigation-bar entry *Feedback* with list item CSS class `afh-feedback-entry` and target `#`.
 
 **Acceptance.** From a host page: press Feedback, the overlay opens signed in as the host user, the

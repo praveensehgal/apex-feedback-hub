@@ -1,6 +1,6 @@
 /*!
  * APEX Feedback Hub — host adapter
- * Version 1.0.0 · contract docs/architecture/browser-integration.md
+ * Version 1.0.1 · contract docs/architecture/browser-integration.md
  *
  * The ONLY global this file creates is window.AFH (spec §7.4).
  * The host page must never break because of this file: every public entry
@@ -12,7 +12,7 @@
 (function (window, document) {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
   var CONTRACT_VERSION = '1.0';
   var SCREENSHOT_TIMEOUT_MS = 6000;
   var IFRAME_TIMEOUT_MS = 10000;
@@ -215,6 +215,197 @@
     return { result: 'SUCCESS', dataUrl: dataUrl, width: canvas.width, height: canvas.height };
   }
 
+  /* html2canvas clones and paints every element it is given, on the page's only thread, so a
+   * whole-document capture of a long report froze the browser. The screenshot is the visible
+   * viewport. Before cloning, each run of in-flow siblings lying wholly outside the viewport is
+   * marked: its first element is cloned as one empty box spanning the run, the rest of the run and
+   * every descendant are not cloned at all. Out-of-flow elements off screen take no space and are
+   * dropped. Tables keep their measured column widths, so the viewport lays out exactly as on the
+   * page. The marks are attributes on the host page's elements, removed as soon as html2canvas
+   * settles. */
+  var SHOT_OFF = 'data-afh-off', SHOT_SKIP = 'data-afh-skip', SHOT_COLS = 'data-afh-cols', SHOT_SCROLL = 'data-afh-scroll', SHOT_ANCHOR = 'data-afh-anchor', SHOT_COLROW = 'data-afh-colrow';
+
+  function shotMark(el, attr, value, marks) {
+    el.setAttribute(attr, value);
+    marks.push(el);
+  }
+
+  function shotOffscreen(r, view) {
+    return (r.width > 0 || r.height > 0) && (r.bottom < 0 || r.top > view.h || r.right < 0 || r.left > view.w);
+  }
+
+  function shotCloseRun(run, marks, tables) {
+    var first, last, table, i;
+    if (!run.length) { return; }
+    first = run[0];
+    last = run[run.length - 1];
+    shotMark(first.el, SHOT_OFF, [first.rect.width, last.rect.bottom - first.rect.top, last.style.marginBottom].join(' '), marks);
+    for (i = 1; i < run.length; i++) { shotMark(run[i].el, SHOT_SKIP, '1', marks); }
+    table = first.el.tagName === 'TR' && first.el.closest ? first.el.closest('table') : null;
+    if (table && tables.indexOf(table) < 0) { tables.push(table); }
+  }
+
+  function shotMarkTree(parent, view, marks, tables) {
+    var child, rect, style, run = [];
+    for (child = parent.firstElementChild; child; child = child.nextElementSibling) {
+      rect = child.getBoundingClientRect();
+      if (!shotOffscreen(rect, view)) {
+        shotCloseRun(run, marks, tables);
+        run = [];
+        if (child.scrollTop || child.scrollLeft) { shotMark(child, SHOT_SCROLL, child.scrollLeft + ' ' + child.scrollTop, marks); }
+        shotMarkTree(child, view, marks, tables);
+        continue;
+      }
+      style = window.getComputedStyle(child);
+      if (style.position === 'absolute' || style.position === 'fixed') {
+        shotMark(child, SHOT_SKIP, '1', marks);
+      } else if (style.display.indexOf('inline') === 0 || style.cssFloat !== 'none') {
+        shotCloseRun(run, marks, tables);
+        run = [];
+      } else {
+        run.push({ el: child, rect: rect, style: style });
+      }
+    }
+    shotCloseRun(run, marks, tables);
+  }
+
+  /* Column widths from one on-screen row without spans; the clone gets a fixed-layout colgroup.
+   * A col width is not the cell's border-box width under collapsed borders, so the clone's cells
+   * are measured against the page's and each col corrected by the difference. */
+  function shotMarkColumns(tables, marks) {
+    var t, r, rows, cells, widths, c, found;
+    for (t = 0; t < tables.length; t++) {
+      rows = tables[t].rows;
+      for (r = 0, found = false; r < rows.length && !found; r++) {
+        cells = rows[r].cells;
+        if (rows[r].hasAttribute(SHOT_OFF) || rows[r].hasAttribute(SHOT_SKIP)) { continue; }
+        for (c = 0, widths = []; c < cells.length && cells[c].colSpan === 1; c++) { widths.push(cells[c].getBoundingClientRect().width); }
+        found = cells.length > 0 && widths.length === cells.length;
+      }
+      if (found) {
+        shotMark(rows[r - 1], SHOT_COLROW, '1', marks);
+        shotMark(tables[t], SHOT_COLS, widths.join(' ') + '|' + tables[t].getBoundingClientRect().width, marks);
+      }
+    }
+  }
+
+  function shotSampleRow(t) {
+    var i;
+    for (i = 0; i < t.rows.length; i++) {
+      if (t.rows[i].hasAttribute(SHOT_COLROW)) { return t.rows[i]; }
+    }
+    return null;
+  }
+
+  function shotFixColumns(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('[' + SHOT_COLS + ']'), function (t) {
+      var parts = t.getAttribute(SHOT_COLS).split('|'), want = parts[0].split(' ').map(Number);
+      var group = doc.createElement('colgroup'), cols = [], set, row, pass, c, got;
+      Array.prototype.forEach.call(t.querySelectorAll(':scope > colgroup'), function (g) { g.parentNode.removeChild(g); });
+      want.forEach(function (w) {
+        var col = doc.createElement('col');
+        col.style.width = w + 'px';
+        cols.push(col);
+        group.appendChild(col);
+      });
+      t.insertBefore(group, t.firstChild);
+      t.style.tableLayout = 'fixed';
+      t.style.width = parts[1] + 'px';
+      row = shotSampleRow(t);
+      for (pass = 0, set = want.slice(); row && pass < 2; pass++) {
+        for (c = 0; c < cols.length && c < row.cells.length; c++) {
+          got = row.cells[c].getBoundingClientRect().width;
+          if (got !== want[c]) {
+            set[c] += want[c] - got;
+            cols[c].style.width = set[c] + 'px';
+          }
+        }
+      }
+    });
+  }
+
+  function shotSizeBoxes(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('[' + SHOT_OFF + ']'), function (el) {
+      var size = el.getAttribute(SHOT_OFF).split(' ');
+      while (el.firstChild) { el.removeChild(el.firstChild); }
+      el.style.boxSizing = 'border-box';
+      el.style.height = el.style.minHeight = el.style.maxHeight = size[1] + 'px';
+      el.style.marginBottom = size[2];
+      if (el.tagName !== 'TR') { el.style.width = size[0] + 'px'; }
+    });
+  }
+
+  /* html2canvas scrolls the clone before onclone, while the boxes are still collapsed, so the
+   * window and every scrolled region are scrolled again once the boxes have their size. */
+  function shotRescroll(doc, view) {
+    Array.prototype.forEach.call(doc.querySelectorAll('[' + SHOT_SCROLL + ']'), function (el) {
+      var pos = el.getAttribute(SHOT_SCROLL).split(' ');
+      el.scrollLeft = Number(pos[0]);
+      el.scrollTop = Number(pos[1]);
+    });
+    doc.defaultView.scrollTo(view.x, view.y);
+  }
+
+  /* An empty box can shift what follows by a fraction of a pixel (a collapsed table border that
+   * belonged to the replaced row, for one). The element at the centre of the viewport is measured
+   * in the page and in the clone, and the nearest box before it absorbs the difference. */
+  function shotMarkAnchor(view, marks) {
+    var el = document.elementFromPoint(view.w / 2, view.h / 2);
+    if (el && el !== document.body && el !== document.documentElement) {
+      shotMark(el, SHOT_ANCHOR, String(el.getBoundingClientRect().top), marks);
+    }
+  }
+
+  function shotAlignAnchor(doc, view) {
+    var anchor = doc.querySelector('[' + SHOT_ANCHOR + ']'), boxes = doc.querySelectorAll('[' + SHOT_OFF + ']');
+    var i, box = null, dy, height;
+    if (!anchor) { return; }
+    for (i = 0; i < boxes.length; i++) {
+      if (boxes[i].compareDocumentPosition(anchor) & 4) { box = boxes[i]; }
+    }
+    dy = anchor.getBoundingClientRect().top + doc.defaultView.pageYOffset - Number(anchor.getAttribute(SHOT_ANCHOR)) - view.y;
+    if (!box || !dy) { return; }
+    /* From the recorded size: style.height reads back rounded to six significant digits. */
+    height = Math.max(0, Number(box.getAttribute(SHOT_OFF).split(' ')[1]) - dy);
+    box.style.height = box.style.minHeight = box.style.maxHeight = height + 'px';
+    doc.defaultView.scrollTo(view.x, view.y);
+  }
+
+  function viewportOptions(view) {
+    return {
+      useCORS: true, logging: false, scale: 1,
+      x: view.x, y: view.y, width: view.w, height: view.h, windowWidth: view.w, windowHeight: view.h,
+      ignoreElements: function (el) {
+        return el.hasAttribute(SHOT_SKIP) || !!(el.parentElement && el.parentElement.hasAttribute(SHOT_OFF));
+      },
+      onclone: function (doc) {
+        shotFixColumns(doc);
+        shotSizeBoxes(doc);
+        shotRescroll(doc, view);
+        shotAlignAnchor(doc, view);
+      }
+    };
+  }
+
+  function renderViewport() {
+    var root = document.documentElement, marks = [], tables = [];
+    var view = { x: window.pageXOffset, y: window.pageYOffset, w: root.clientWidth || window.innerWidth, h: root.clientHeight || window.innerHeight };
+    function unmark() {
+      marks.forEach(function (el) { [SHOT_OFF, SHOT_SKIP, SHOT_COLS, SHOT_SCROLL, SHOT_ANCHOR, SHOT_COLROW].forEach(function (a) { el.removeAttribute(a); }); });
+    }
+    try {
+      shotMarkTree(document.body, view, marks, tables);
+      shotMarkColumns(tables, marks);
+      shotMarkAnchor(view, marks);
+    } catch (e) {
+      unmark();
+      throw e;
+    }
+    return window.html2canvas(root, viewportOptions(view)).then(
+      function (canvas) { unmark(); return canvas; },
+      function (e) { unmark(); throw e; });
+  }
+
   function takeScreenshot(cfg) {
     var timer, timeout, capture;
     if (!cfg.screenshot) { return Promise.resolve({ result: 'DENIED' }); }
@@ -224,7 +415,7 @@
     });
     capture = new Promise(function (resolve) {
       try {
-        window.html2canvas(document.documentElement, { useCORS: true, logging: false, scale: 1 })
+        renderViewport()
           .then(function (canvas) { resolve(canvasToResult(canvas)); })
           .catch(function () { resolve({ result: 'FAILED', reason: 'RENDER_ERROR' }); });
       } catch (e) {

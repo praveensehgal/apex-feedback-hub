@@ -23,7 +23,7 @@ Binding contract: `docs/architecture/browser-integration.md`. Adapter version **
    ```html
    <script>
    window.AFH_CONFIG = { hubAppId: '&HUB_APP_ID.', appKey: '&AFH_APP_KEY.', envCode: '&AFH_ENV_CODE.',
-                         mode: 'SHARED_SESSION', adapterVersion: '1.0.0', createButton: false };
+                         mode: 'SHARED_SESSION', adapterVersion: '1.0.1', createButton: false };
    </script>
    ```
 
@@ -57,7 +57,7 @@ the Integration Health page.
 | `appKey` | — (required) | Host application key as registered in the Hub |
 | `envCode` | `null` | Environment code (`'DEV'`, `'TEST'`, …) or a function returning one |
 | `mode` | `'SHARED_SESSION'` | `'SHARED_SESSION'` (same workspace) or `'SIGNED_ENVELOPE'` (token) |
-| `adapterVersion` | `'1.0.0'` | Reported to the Hub for compatibility checks |
+| `adapterVersion` | `'1.0.1'` | Reported to the Hub for compatibility checks |
 | `screenshot` | `true` | Set `false` to send `{result:'DENIED'}` instead of an html2canvas capture |
 | `buttonSelector` | `'#afh-feedback'` | Element the adapter binds the click handler to |
 | `createButton` | `true` | Create a floating `.afh-launcher` when the selector matches nothing |
