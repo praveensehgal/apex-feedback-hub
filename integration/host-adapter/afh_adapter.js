@@ -1,6 +1,6 @@
 /*!
  * APEX Feedback Hub — host adapter
- * Version 1.0.1 · contract docs/architecture/browser-integration.md
+ * Version 1.0.2 · contract docs/architecture/browser-integration.md
  *
  * The ONLY global this file creates is window.AFH (spec §7.4).
  * The host page must never break because of this file: every public entry
@@ -12,7 +12,7 @@
 (function (window, document) {
   'use strict';
 
-  var VERSION = '1.0.1';
+  var VERSION = '1.0.2';
   var CONTRACT_VERSION = '1.0';
   var SCREENSHOT_TIMEOUT_MS = 6000;
   var IFRAME_TIMEOUT_MS = 10000;
@@ -221,9 +221,13 @@
    * marked: its first element is cloned as one empty box spanning the run, the rest of the run and
    * every descendant are not cloned at all. Out-of-flow elements off screen take no space and are
    * dropped. Tables keep their measured column widths, so the viewport lays out exactly as on the
-   * page. The marks are attributes on the host page's elements, removed as soon as html2canvas
+   * page. Hidden (display:none) elements are cloned empty: html2canvas reads three computed styles
+   * per cloned element, and for an undisplayed one the browser recomputes the whole hidden ancestor
+   * chain against every stylesheet, so deep hidden menus and dialogs on a themed page froze it for
+   * seconds. The marks are attributes on the host page's elements, removed as soon as html2canvas
    * settles. */
-  var SHOT_OFF = 'data-afh-off', SHOT_SKIP = 'data-afh-skip', SHOT_COLS = 'data-afh-cols', SHOT_SCROLL = 'data-afh-scroll', SHOT_ANCHOR = 'data-afh-anchor', SHOT_COLROW = 'data-afh-colrow';
+  var SHOT_OFF = 'data-afh-off', SHOT_SKIP = 'data-afh-skip', SHOT_COLS = 'data-afh-cols', SHOT_SCROLL = 'data-afh-scroll', SHOT_ANCHOR = 'data-afh-anchor', SHOT_COLROW = 'data-afh-colrow', SHOT_HIDE = 'data-afh-hide';
+  var SHOT_ATTRS = [SHOT_OFF, SHOT_SKIP, SHOT_COLS, SHOT_SCROLL, SHOT_ANCHOR, SHOT_COLROW, SHOT_HIDE];
 
   function shotMark(el, attr, value, marks) {
     el.setAttribute(attr, value);
@@ -235,12 +239,16 @@
   }
 
   function shotCloseRun(run, marks, tables) {
-    var first, last, table, i;
+    var first, last, table, keep, i;
     if (!run.length) { return; }
     first = run[0];
     last = run[run.length - 1];
     shotMark(first.el, SHOT_OFF, [first.rect.width, last.rect.bottom - first.rect.top, last.style.marginBottom].join(' '), marks);
-    for (i = 1; i < run.length; i++) { shotMark(run[i].el, SHOT_SKIP, '1', marks); }
+    /* An even run keeps a second, zero-size element, so siblings after it keep their nth-child
+     * parity (Universal Theme stripes report rows with tr:nth-child(odd)). */
+    keep = run.length % 2 === 0 ? 2 : 1;
+    if (keep === 2) { shotMark(run[1].el, SHOT_OFF, '0 0 0px', marks); }
+    for (i = keep; i < run.length; i++) { shotMark(run[i].el, SHOT_SKIP, '1', marks); }
     table = first.el.tagName === 'TR' && first.el.closest ? first.el.closest('table') : null;
     if (table && tables.indexOf(table) < 0) { tables.push(table); }
   }
@@ -252,6 +260,10 @@
       if (!shotOffscreen(rect, view)) {
         shotCloseRun(run, marks, tables);
         run = [];
+        if (!rect.width && !rect.height && window.getComputedStyle(child).display === 'none') {
+          if (child.firstElementChild) { shotMark(child, SHOT_HIDE, '1', marks); }
+          continue;
+        }
         if (child.scrollTop || child.scrollLeft) { shotMark(child, SHOT_SCROLL, child.scrollLeft + ' ' + child.scrollTop, marks); }
         shotMarkTree(child, view, marks, tables);
         continue;
@@ -332,6 +344,7 @@
       el.style.height = el.style.minHeight = el.style.maxHeight = size[1] + 'px';
       el.style.marginBottom = size[2];
       if (el.tagName !== 'TR') { el.style.width = size[0] + 'px'; }
+      if (size[1] === '0') { el.style.border = el.style.padding = el.style.margin = '0'; }
     });
   }
 
@@ -361,7 +374,7 @@
     var i, box = null, dy, height;
     if (!anchor) { return; }
     for (i = 0; i < boxes.length; i++) {
-      if (boxes[i].compareDocumentPosition(anchor) & 4) { box = boxes[i]; }
+      if (boxes[i].compareDocumentPosition(anchor) & 4 && boxes[i].getAttribute(SHOT_OFF).split(' ')[1] !== '0') { box = boxes[i]; }
     }
     dy = anchor.getBoundingClientRect().top + doc.defaultView.pageYOffset - Number(anchor.getAttribute(SHOT_ANCHOR)) - view.y;
     if (!box || !dy) { return; }
@@ -376,7 +389,8 @@
       useCORS: true, logging: false, scale: 1,
       x: view.x, y: view.y, width: view.w, height: view.h, windowWidth: view.w, windowHeight: view.h,
       ignoreElements: function (el) {
-        return el.hasAttribute(SHOT_SKIP) || !!(el.parentElement && el.parentElement.hasAttribute(SHOT_OFF));
+        var parent = el.parentElement;
+        return el.hasAttribute(SHOT_SKIP) || !!(parent && (parent.hasAttribute(SHOT_OFF) || parent.hasAttribute(SHOT_HIDE)));
       },
       onclone: function (doc) {
         shotFixColumns(doc);
@@ -391,7 +405,7 @@
     var root = document.documentElement, marks = [], tables = [];
     var view = { x: window.pageXOffset, y: window.pageYOffset, w: root.clientWidth || window.innerWidth, h: root.clientHeight || window.innerHeight };
     function unmark() {
-      marks.forEach(function (el) { [SHOT_OFF, SHOT_SKIP, SHOT_COLS, SHOT_SCROLL, SHOT_ANCHOR, SHOT_COLROW].forEach(function (a) { el.removeAttribute(a); }); });
+      marks.forEach(function (el) { SHOT_ATTRS.forEach(function (a) { el.removeAttribute(a); }); });
     }
     try {
       shotMarkTree(document.body, view, marks, tables);

@@ -1,7 +1,7 @@
 # APEX Feedback Hub
 
-Version **0.1.1** (application Release 1.0.56), built 2026-11-02T18:12:31Z
-from commit d478c31.
+Version **0.1.1** (application Release 1.0.56), built 2026-11-02T21:49:21Z
+from commit a1bb1ad.
 
 In-application feedback capture and ticket management for Oracle APEX. Users press a Feedback
 button on any integrated APEX page; the Hub opens in an overlay, captures the page context and a
