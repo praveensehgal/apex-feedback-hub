@@ -1,6 +1,6 @@
 /*!
  * APEX Feedback Hub — host adapter
- * Version 1.0.2 · contract docs/architecture/browser-integration.md
+ * Version 1.0.3 · contract docs/architecture/browser-integration.md
  *
  * The ONLY global this file creates is window.AFH (spec §7.4).
  * The host page must never break because of this file: every public entry
@@ -12,7 +12,7 @@
 (function (window, document) {
   'use strict';
 
-  var VERSION = '1.0.2';
+  var VERSION = '1.0.3';
   var CONTRACT_VERSION = '1.0';
   var SCREENSHOT_TIMEOUT_MS = 6000;
   var IFRAME_TIMEOUT_MS = 10000;
@@ -217,10 +217,10 @@
 
   /* html2canvas clones and paints every element it is given, on the page's only thread, so a
    * whole-document capture of a long report froze the browser. The screenshot is the visible
-   * viewport. Before cloning, each run of in-flow siblings lying wholly outside the viewport is
-   * marked: its first element is cloned as one empty box spanning the run, the rest of the run and
-   * every descendant are not cloned at all. Out-of-flow elements off screen take no space and are
-   * dropped. Tables keep their measured column widths, so the viewport lays out exactly as on the
+   * viewport. Before cloning, each run of stacked in-flow siblings lying wholly above or below the
+   * viewport is marked: its first element is cloned as one empty box spanning the run, the rest of
+   * the run and every descendant are not cloned at all. Out-of-flow elements off screen take no
+   * space and are dropped. Tables keep their measured column widths, so the viewport lays out exactly as on the
    * page. Hidden (display:none) elements are cloned empty: html2canvas reads three computed styles
    * per cloned element, and for an undisplayed one the browser recomputes the whole hidden ancestor
    * chain against every stylesheet, so deep hidden menus and dialogs on a themed page froze it for
@@ -253,11 +253,37 @@
     if (table && tables.indexOf(table) < 0) { tables.push(table); }
   }
 
+  /* Siblings merge into one box only where they stack top to bottom. In a grid, a row or wrapping
+   * flex box, or a table row, the items after a merged box would move up into the freed places. */
+  var SHOT_STACKING = ['block', 'flow-root', 'list-item', 'inline-block', 'table', 'inline-table', 'table-row-group', 'table-header-group', 'table-footer-group'];
+
+  function shotStacks(el) {
+    var s = window.getComputedStyle(el);
+    if (s.display === 'flex' || s.display === 'inline-flex') { return s.flexDirection === 'column' && s.flexWrap === 'nowrap'; }
+    return SHOT_STACKING.indexOf(s.display) >= 0;
+  }
+
   function shotMarkTree(parent, view, marks, tables) {
-    var child, rect, style, run = [];
+    var child, rect, style, run = [], stacks = shotStacks(parent);
     for (child = parent.firstElementChild; child; child = child.nextElementSibling) {
       rect = child.getBoundingClientRect();
-      if (!shotOffscreen(rect, view)) {
+      style = shotOffscreen(rect, view) ? window.getComputedStyle(child) : null;
+      if (style && (style.position === 'absolute' || style.position === 'fixed')) {
+        shotMark(child, SHOT_SKIP, '1', marks);
+      } else if (style && (rect.bottom < 0 || rect.top > view.h)) {
+        if (style.display.indexOf('inline') === 0 || style.cssFloat !== 'none') {
+          shotCloseRun(run, marks, tables);
+          run = [];
+        } else {
+          run.push({ el: child, rect: rect, style: style });
+          if (!stacks) {
+            shotCloseRun(run, marks, tables);
+            run = [];
+          }
+        }
+      } else {
+        /* On screen, or off it only sideways: cells of a wide report scrolled left or right sit
+         * beside the visible ones in the same row, so they are kept and only their rows are pruned. */
         shotCloseRun(run, marks, tables);
         run = [];
         if (!rect.width && !rect.height && window.getComputedStyle(child).display === 'none') {
@@ -266,16 +292,6 @@
         }
         if (child.scrollTop || child.scrollLeft) { shotMark(child, SHOT_SCROLL, child.scrollLeft + ' ' + child.scrollTop, marks); }
         shotMarkTree(child, view, marks, tables);
-        continue;
-      }
-      style = window.getComputedStyle(child);
-      if (style.position === 'absolute' || style.position === 'fixed') {
-        shotMark(child, SHOT_SKIP, '1', marks);
-      } else if (style.display.indexOf('inline') === 0 || style.cssFloat !== 'none') {
-        shotCloseRun(run, marks, tables);
-        run = [];
-      } else {
-        run.push({ el: child, rect: rect, style: style });
       }
     }
     shotCloseRun(run, marks, tables);

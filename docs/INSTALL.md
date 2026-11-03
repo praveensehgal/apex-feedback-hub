@@ -227,7 +227,7 @@ Host side, in the host application (full detail in `integration/host-adapter/REA
    application ID is never typed into a page.
 4. A Global Page (page 0) Static Content region, template *Blank with Attributes*, that publishes
    `window.AFH_CONFIG = { hubAppId: '&HUB_APP_ID.', appKey: '&AFH_APP_KEY.', envCode: '&AFH_ENV_CODE.',
-   mode: 'SHARED_SESSION', adapterVersion: '1.0.2', createButton: false, buttonSelector: '.afh-feedback-entry a' };`
+   mode: 'SHARED_SESSION', adapterVersion: '1.0.3', createButton: false, buttonSelector: '.afh-feedback-entry a' };`
 5. A navigation-bar entry *Feedback* with list item CSS class `afh-feedback-entry` and target `#`.
 
 **Acceptance.** From a host page: press Feedback, the overlay opens signed in as the host user, the
