@@ -70,6 +70,7 @@ prompt --install
 @@application/pages/page_00002.sql
 @@application/pages/page_00003.sql
 @@application/pages/page_00010.sql
+@@application/pages/page_00011.sql
 @@application/pages/page_00020.sql
 @@application/pages/page_00030.sql
 @@application/pages/page_00040.sql

@@ -56,9 +56,10 @@ GRANT EXECUTE ON sys.dbms_crypto TO afh;
 ```
 
 No DBA role and no `APEX_ADMINISTRATOR_ROLE`. `UTL_MATCH`, `DBMS_SCHEDULER`, `DBMS_LOB` and the
-`APEX_*` packages are PUBLIC-executable and need no grant. If outbound mail will be used, the
-schema also needs a network ACL for the SMTP host (§6), exactly as any APEX application that calls
-`APEX_MAIL` does.
+`APEX_*` packages are PUBLIC-executable and need no grant. Outbound mail needs no grant on the
+product schema either: `APEX_MAIL` connects to the SMTP host as the APEX engine schema (`APEX_240200`
+on 24.2), so that schema needs the network ACL (§6), exactly as for any APEX application that sends
+mail.
 
 Then, as a workspace administrator, add `AFH` to the workspace that owns the host application
 (Administration → Manage Workspace → Manage Workspace Schema Assignments, or
@@ -190,8 +191,9 @@ END;
 ```
 
 **Mail.** The Hub sends through `APEX_MAIL`, so instance mail must already be configured
-(Manage Instance → Instance Settings → Email) and the `AFH` schema must be allowed to reach the
-SMTP host by network ACL. Until then leave `MAIL_ENABLED = N`; every notification still appears in
+(Manage Instance → Instance Settings → Email) and the APEX engine schema (`APEX_240200` on 24.2)
+must be allowed to reach the SMTP host by network ACL. If any application on the instance already
+sends mail, both are in place. Until then leave `MAIL_ENABLED = N`; every notification still appears in
 the user's in-app inbox and nothing is lost.
 
 ## 7. Register the host application and wire it up

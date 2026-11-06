@@ -101,7 +101,7 @@ CREATE OR REPLACE PACKAGE afh_notification_pkg AUTHID DEFINER AS
     p_summary      IN  VARCHAR2,
     o_subject      OUT VARCHAR2,
     o_body         OUT CLOB);
-  -- Hub link for a ticket: config BASE_URL || 'f?p=' || FEEDBACK_APP_ID || ':10::::10:P10_TICKET_NO:' || no
+  -- Hub link for a ticket: config BASE_URL || 'f?p=' || FEEDBACK_APP_ID || ':11::::11:P11_TICKET_NO:' || no (page 11 redirects to 10)
   FUNCTION ticket_link(p_ticket_id IN NUMBER) RETURN VARCHAR2;
   -- Admin template maintenance (audit TEMPLATE_CHANGED)
   PROCEDURE upsert_template(

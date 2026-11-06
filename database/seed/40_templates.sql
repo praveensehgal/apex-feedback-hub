@@ -1,9 +1,12 @@
--- 40_templates.sql — notification templates (spec §19, PRD §7.9). Idempotent.
+-- 40_templates.sql - notification templates (spec §19, PRD §7.9). Idempotent.
 --
 -- One IN_APP and one EMAIL template per event code, plus the DIGEST mail template.
--- Placeholders: #TICKET_NO# #TITLE# #STATUS# #ACTOR# #APPLICATION# #SUMMARY# #LINK#
--- #RECIPIENT# #PRODUCT_NAME#, and #ITEMS# (digest only). EMAIL bodies are plain text;
--- the link sits on its own line. Subjects follow '[#PRODUCT_NAME#] #TICKET_NO# — <phrase>'.
+-- Placeholders: #TICKET_NO# #TITLE# #STATUS# #ACTOR# #APPLICATION# #ENVIRONMENT# #SUMMARY#
+-- #LINK# #RECIPIENT# #PRODUCT_NAME#, and #ITEMS# (digest only). EMAIL bodies are plain text;
+-- the link sits on its own line. Subjects follow '[#PRODUCT_NAME# #ENVIRONMENT#] #TICKET_NO# - <phrase>'.
+--
+-- Every literal here is 7-bit ASCII: a database whose character set lacks a character (an em
+-- dash under WE8ISO8859P1) stores it as an inverted question mark in every rendered mail.
 --
 -- Re-run rule: a row is refreshed only while last_updated_by = created_by, i.e. it still
 -- carries the installer's version. Once an administrator edits a template (Page 65 writes
@@ -18,6 +21,7 @@ DECLARE
         || p_lead || CHR(10)
         || 'Ticket: #TICKET_NO# #TITLE#' || CHR(10)
         || 'Application: #APPLICATION#' || CHR(10)
+        || 'Environment: #ENVIRONMENT#' || CHR(10)
         || 'Status: #STATUS#' || CHR(10)
         || 'By: #ACTOR#' || CHR(10) || CHR(10)
         || '#SUMMARY#' || CHR(10) || CHR(10)
@@ -43,10 +47,10 @@ DECLARE
   BEGIN
     seed(p_event, 'IN_APP',
          p_phrase || ': #TICKET_NO# #TITLE#',
-         '#ACTOR# — #SUMMARY#',
+         '#ACTOR# - #SUMMARY#',
          'In-app notification for ' || p_event);
     seed(p_event, 'EMAIL',
-         '[#PRODUCT_NAME#] #TICKET_NO# — ' || p_phrase,
+         '[#PRODUCT_NAME# #ENVIRONMENT#] #TICKET_NO# - ' || p_phrase,
          mail_body(p_lead),
          'E-mail notification for ' || p_event);
   END seed_event;

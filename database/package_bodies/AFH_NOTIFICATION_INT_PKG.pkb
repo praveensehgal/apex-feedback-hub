@@ -181,7 +181,10 @@ CREATE OR REPLACE PACKAGE BODY afh_notification_int_pkg AS
       RETURN NULL;
     END IF;
     SELECT t.ticket_no INTO l_no FROM afh_tickets t WHERE t.ticket_id = p_ticket_id;
-    RETURN RTRIM(l_base, '/') || '/f?p=' || l_app_id || ':10::::10:P10_TICKET_NO:' || l_no;
+    -- Page 11 (Open Ticket) accepts the number without a checksum and redirects to page 10
+    -- with one. Page 10 itself refuses URL values without a checksum, and a mail built by a
+    -- job has no APEX session to compute one.
+    RETURN RTRIM(l_base, '/') || '/f?p=' || l_app_id || ':11::::11:P11_TICKET_NO:' || l_no;
   EXCEPTION
     WHEN NO_DATA_FOUND THEN RETURN NULL;
   END ticket_link;
@@ -226,9 +229,10 @@ CREATE OR REPLACE PACKAGE BODY afh_notification_int_pkg AS
                 || 'Recent activity on tickets you follow:' || CHR(10) || CHR(10)
                 || '#ITEMS#' || CHR(10) || CHR(10) || '-- #PRODUCT_NAME#';
     ELSIF p_channel_code = c_channel_email THEN
-      o_subject := '[#PRODUCT_NAME#] #TICKET_NO# - ' || l_label;
+      o_subject := '[#PRODUCT_NAME# #ENVIRONMENT#] #TICKET_NO# - ' || l_label;
       o_body    := 'Hello #RECIPIENT#,' || CHR(10) || CHR(10)
                 || l_label || ': #TICKET_NO# #TITLE# (#APPLICATION#, status #STATUS#).' || CHR(10)
+                || 'Environment: #ENVIRONMENT#' || CHR(10)
                 || 'By: #ACTOR#' || CHR(10) || '#SUMMARY#' || CHR(10) || CHR(10)
                 || 'Open the ticket:' || CHR(10) || '#LINK#' || CHR(10) || CHR(10)
                 || '-- #PRODUCT_NAME#';
@@ -247,15 +251,17 @@ CREATE OR REPLACE PACKAGE BODY afh_notification_int_pkg AS
     l_title  afh_tickets.title%TYPE;
     l_status VARCHAR2(255 CHAR);
     l_app    afh_applications.display_name%TYPE;
+    l_env    afh_environments.env_code%TYPE;
     l_link   VARCHAR2(2000 CHAR);
   BEGIN
     IF p_ticket_id IS NOT NULL THEN
       SELECT t.ticket_no, t.title,
              COALESCE(s.label, INITCAP(REPLACE(t.status_code, '_', ' '))),
-             a.display_name
-        INTO l_no, l_title, l_status, l_app
+             a.display_name, e.env_code
+        INTO l_no, l_title, l_status, l_app, l_env
         FROM afh_tickets t
         JOIN afh_applications a ON a.application_id = t.application_id
+        LEFT JOIN afh_environments e ON e.environment_id = t.environment_id
         LEFT JOIN afh_workflow_statuses s ON s.status_code = t.status_code
        WHERE t.ticket_id = p_ticket_id;
       l_link := ticket_link(p_ticket_id);
@@ -264,6 +270,7 @@ CREATE OR REPLACE PACKAGE BODY afh_notification_int_pkg AS
     apex_string.push(p_names, 'TITLE');       apex_string.push(p_values, l_title);
     apex_string.push(p_names, 'STATUS');      apex_string.push(p_values, l_status);
     apex_string.push(p_names, 'APPLICATION'); apex_string.push(p_values, l_app);
+    apex_string.push(p_names, 'ENVIRONMENT'); apex_string.push(p_values, l_env);
     apex_string.push(p_names, 'LINK');        apex_string.push(p_values, COALESCE(l_link, c_link_unavailable));
   END ticket_facts;
 

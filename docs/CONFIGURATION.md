@@ -75,7 +75,10 @@ Scores are summed per candidate ticket; a candidate at or above `DUP_THRESHOLD` 
 ## Mail and notifications
 
 In-app notifications are always on. Mail is an additional channel through `APEX_MAIL`, so instance
-mail and a network ACL for the product schema must exist before `MAIL_ENABLED` is set to `Y`.
+mail and a network ACL for the APEX engine schema (`APEX_240200` on 24.2) must exist before
+`MAIL_ENABLED` is set to `Y`. Mail subjects and bodies name the environment the ticket was reported
+from (`#ENVIRONMENT#`, the registered environment code), and mail links open the ticket through
+page 11 *Open Ticket*, so `BASE_URL` and `FEEDBACK_APP_ID` must both be set.
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
