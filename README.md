@@ -1,7 +1,7 @@
 # APEX Feedback Hub
 
-Version **0.1.1** (application Release 1.0.59), built 2026-11-06T17:18:33Z
-from commit 680132b.
+Version **0.1.1** (application Release 1.0.59), built 2026-11-09T16:50:05Z
+from commit f9c4f1d.
 
 In-application feedback capture and ticket management for Oracle APEX. Users press a Feedback
 button on any integrated APEX page; the Hub opens in an overlay, captures the page context and a
@@ -25,6 +25,7 @@ Start with [docs/INSTALL.md](docs/INSTALL.md). In order:
 5. Wire the host application ([integration/host-adapter/README.md](integration/host-adapter/README.md))
 
 Upgrades and rollback: [docs/UPGRADE-AND-ROLLBACK.md](docs/UPGRADE-AND-ROLLBACK.md).
+How the parts fit together, for IT: [docs/FAQ.md](docs/FAQ.md).
 Verify a download with `shasum -a 256 -c MANIFEST.sha256`.
 
 ## Layout
@@ -33,7 +34,7 @@ Verify a download with `shasum -a 256 -c MANIFEST.sha256`.
 database/                   ordered installer, uninstall, upgrades
 apex/application/           the Hub application export (split, install.sql at the top)
 integration/host-adapter/   files the host application installs
-docs/                       INSTALL.md, CONFIGURATION.md, UPGRADE-AND-ROLLBACK.md
+docs/                       INSTALL.md, CONFIGURATION.md, UPGRADE-AND-ROLLBACK.md, FAQ.md
 licenses/                   third-party browser libraries and their licenses
 MANIFEST.sha256             checksums of every file in the release
 ```
