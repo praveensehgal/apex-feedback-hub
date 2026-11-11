@@ -43,6 +43,11 @@ CREATE OR REPLACE PACKAGE afh_security_pkg AUTHID DEFINER AS
   -- Canonical form of a subject: UPPER(TRIM(p_subject)). NULL -> NULL.
   FUNCTION canonical_subject(p_subject IN VARCHAR2) RETURN VARCHAR2;
 
+  -- Stored form of an e-mail address: trimmed and lower-case (addresses are matched
+  -- case-insensitively), NULL when blank. Every write to afh_users.email goes through it;
+  -- AFH_USERS_CK3 enforces the result.
+  FUNCTION normalize_email(p_email IN VARCHAR2) RETURN VARCHAR2;
+
   -- Subject of the current trusted session (APEX APP_USER), or the test subject under
   -- test_mode. Raises AFH-AUTH-001 when there is no authenticated subject.
   FUNCTION current_subject RETURN VARCHAR2;

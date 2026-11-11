@@ -2,7 +2,7 @@
 
 For the DBAs, APEX developers and administrators who install, run and support the Feedback Hub.
 It assumes you know Oracle APEX and have not seen this product before. It describes product
-version **0.1.1**, application **Release 1.0.60**. The step-by-step procedures are in
+version **0.1.1**, application **Release 1.0.61**. The step-by-step procedures are in
 `INSTALL.md`, every setting is in `CONFIGURATION.md`, and upgrades are in `UPGRADE-AND-ROLLBACK.md`.
 This FAQ explains how the parts fit together and answers the questions those documents don't.
 
@@ -150,9 +150,9 @@ are off, because a full import ends every session of that application.
 | Number | Example | Where to read it | Changes when |
 |---|---|---|---|
 | Product version | `0.1.1` | `AFH_INSTALL_CONFIG.PRODUCT_VERSION`, page 60 | the database layer changes |
-| Application release | `Release 1.0.60` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
+| Application release | `Release 1.0.61` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
 
-A public release is tagged with both, for example `v0.1.1-r1.0.60`.
+A public release is tagged with both, for example `v0.1.1-r1.0.61`.
 
 ### How do I roll back?
 
@@ -197,8 +197,9 @@ the same browser. You should be signed in with no second prompt.
 ### Who is the user, as far as the Hub is concerned?
 
 The APEX `APP_USER` value, upper-cased and trimmed. The first time someone opens the Hub, a row
-is created for them in `AFH_USERS`. The after-authentication process also records a display
-name and an e-mail address when it can find one (section 7).
+is created for them in `AFH_USERS`. When they sign in on the Hub's own login page, it also records
+a display name and an e-mail address if it can find one. Users who arrive from a host application
+get neither, so an admin or a job of yours fills them in (section 7).
 
 ### Why did the Feedback panel say "temporarily unavailable" after someone signed in again?
 
@@ -609,18 +610,30 @@ done.
 
 ### Where do users' e-mail addresses come from?
 
-From the user's row in `AFH_USERS`. When someone signs in, the Hub stores an address if it can
-find one: the APEX account's e-mail, or `APP_USER` itself when it looks like an address. With
-single sign-on that passes a login name, a certificate UPN or a SAML NameID, there is no address
-to find. Those users stay blank and are skipped for e-mail, while in-app notifications still
-work. Fill the addresses in one of two ways:
+From the user's row in `AFH_USERS`, column `EMAIL`. Mail and digests read nothing else.
 
-- **By hand:** an admin edits the user on Users and Roles (page 63) and enters the e-mail.
+The Hub fills it on its own in only one case: someone signs in on the Hub's **own** login page.
+It then stores the APEX account's e-mail, or `APP_USER` itself when that looks like an address.
+
+Users who reach the Hub from a host application in the same workspace (shared-session mode)
+never pass the Hub's login. They are registered the first time they open the Hub, with **no
+address**. The same is true for single sign-on that passes a login name, a certificate UPN or a
+SAML NameID. Users without an address are skipped for e-mail. In-app notifications still work.
+
+Fill the addresses in one of two ways:
+
+- **By hand:** an admin opens **Administration > Users and Roles** (page 63), clicks the user's
+  name, enters the **E-mail** and saves.
 - **Automatically:** a scheduled job of your own reads your directory or user-profile table and
   calls `afh_security_pkg.update_user(p_user_id, p_display_name, p_email)` for each Hub user.
+  Match on `AFH_USERS.SUBJECT_CANONICAL`, which is the login in upper case.
+
+Addresses are not case-sensitive. The Hub trims them and stores them in lower case, whichever
+way they are entered, and the constraint `AFH_USERS_CK3` refuses anything else written straight
+to the table. Logins are not case-sensitive either.
 
 A later sign-in never blanks an address that is already stored. It only fills an empty one or
-replaces it with a newer value it found.
+replaces it with a newer value it found. Saving a blank e-mail on page 63 clears it.
 
 ### What is in an e-mail?
 

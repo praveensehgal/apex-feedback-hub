@@ -107,14 +107,14 @@ CREATE OR REPLACE PACKAGE BODY afh_security_int_pkg AS
     l_row := lock_user(p_user_id);
     UPDATE afh_users
        SET display_name = SUBSTR(p_display_name, 1, 255),
-           email        = SUBSTR(p_email, 1, 320)
+           email        = afh_security_pkg.normalize_email(p_email)
      WHERE user_id = p_user_id;
     afh_audit_pkg.log_event(
       p_entity_type  => afh_audit_pkg.c_entity_user,
       p_entity_id    => p_user_id,
       p_event_code   => 'USER_UPDATED',
       p_before_facts => user_facts(l_row.display_name, l_row.email, l_row.is_active),
-      p_after_facts  => user_facts(SUBSTR(p_display_name, 1, 255), SUBSTR(p_email, 1, 320), l_row.is_active),
+      p_after_facts  => user_facts(SUBSTR(p_display_name, 1, 255), afh_security_pkg.normalize_email(p_email), l_row.is_active),
       p_summary      => 'User ' || l_row.subject_canonical || ' updated',
       p_is_public    => 'N');
   END update_user;

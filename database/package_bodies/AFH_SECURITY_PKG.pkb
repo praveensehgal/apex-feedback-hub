@@ -54,6 +54,11 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     RETURN SUBSTR(UPPER(TRIM(p_subject)), 1, 255);
   END canonical_subject;
 
+  FUNCTION normalize_email(p_email IN VARCHAR2) RETURN VARCHAR2 IS
+  BEGIN
+    RETURN SUBSTR(LOWER(TRIM(p_email)), 1, 320);
+  END normalize_email;
+
   -- Raw APP_USER of the trusted session (NULL outside APEX). Under test_mode the
   -- impersonated subject wins so tests never depend on an APEX session.
   FUNCTION raw_session_subject RETURN VARCHAR2 IS
@@ -114,7 +119,7 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
   BEGIN
     INSERT INTO afh_users (subject_canonical, subject_display, display_name, email, last_seen_at)
     VALUES (p_canonical, SUBSTR(TRIM(p_subject), 1, 255), SUBSTR(p_display_name, 1, 255),
-            SUBSTR(p_email, 1, 320), l_seen)
+            normalize_email(p_email), l_seen)
     RETURNING user_id INTO l_id;
     afh_audit_pkg.log_event(
       p_entity_type => afh_audit_pkg.c_entity_user,
@@ -122,7 +127,7 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
       p_event_code  => 'USER_CREATED',
       p_after_facts => afh_audit_pkg.json_obj(
         apex_t_varchar2('subject', 'display_name', 'email'),
-        apex_t_varchar2(p_canonical, p_display_name, p_email)),
+        apex_t_varchar2(p_canonical, p_display_name, normalize_email(p_email))),
       p_summary     => 'User ' || p_canonical || ' created',
       p_is_public   => 'N');
     RETURN l_id;
@@ -141,7 +146,7 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     END IF;
     UPDATE afh_users
        SET display_name = COALESCE(SUBSTR(p_display_name, 1, 255), display_name),
-           email        = COALESCE(SUBSTR(p_email, 1, 320), email),
+           email        = COALESCE(normalize_email(p_email), email),
            last_seen_at = CASE WHEN l_touch = 'Y' THEN SYSTIMESTAMP ELSE last_seen_at END
      WHERE user_id = p_user_id;
   END refresh_user;
