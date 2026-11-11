@@ -26,9 +26,6 @@ wwv_flow_imp_page.create_page(
 'to compute one. This page takes the number unprotected, looks it up, and redirects to page 10',
 'with a checksummed URL. An unknown number goes to My Work.'))
 );
-end;
-/
-begin
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(70110000000001010)
 ,p_plug_name=>'Open Ticket'
@@ -40,9 +37,6 @@ wwv_flow_imp_page.create_page_plug(
   'output_as', 'HTML',
   'show_line_breaks', 'N')).to_clob
 );
-end;
-/
-begin
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(70110000000001020)
 ,p_name=>'P11_TICKET_NO'
@@ -60,9 +54,6 @@ wwv_flow_imp_page.create_page_item(
   'subtype', 'TEXT',
   'trim_spaces', 'BOTH')).to_clob
 );
-end;
-/
-begin
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(70110000000001030)
 ,p_process_sequence=>10
@@ -94,10 +85,8 @@ wwv_flow_imp_page.create_page_process(
 '  apex_util.redirect_url(l_url);',
 'END;'))
 ,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>70110000000001030
 );
-end;
-/
-begin
 wwv_flow_imp.component_end;
 end;
 /

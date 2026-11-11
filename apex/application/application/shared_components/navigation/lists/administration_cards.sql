@@ -80,6 +80,15 @@ wwv_flow_imp_shared.create_list_item(
 ,p_security_scheme=>wwv_flow_imp.id(68797704657367743)
 ,p_list_item_current_type=>'TARGET_PAGE'
 );
+wwv_flow_imp_shared.create_list_item(
+ p_id=>wwv_flow_imp.id(70900000000000908)
+,p_list_item_display_sequence=>80
+,p_list_item_link_text=>'FAQ for IT'
+,p_list_item_link_target=>'f?p=&APP_ID.:68:&APP_SESSION.::&DEBUG.:::'
+,p_list_item_icon=>'fa-question-circle'
+,p_security_scheme=>wwv_flow_imp.id(68798393905371806)
+,p_list_item_current_type=>'TARGET_PAGE'
+);
 wwv_flow_imp.component_end;
 end;
 /

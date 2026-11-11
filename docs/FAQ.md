@@ -2,12 +2,13 @@
 
 For the DBAs, APEX developers and administrators who install, run and support the Feedback Hub.
 It assumes you know Oracle APEX and have not seen this product before. It describes product
-version **0.1.1**, application **Release 1.0.59**. The step-by-step procedures are in
+version **0.1.1**, application **Release 1.0.60**. The step-by-step procedures are in
 `INSTALL.md`, every setting is in `CONFIGURATION.md`, and upgrades are in `UPGRADE-AND-ROLLBACK.md`.
 This FAQ explains how the parts fit together and answers the questions those documents don't.
 
 Page numbers below are pages of the Hub application. *Admin* means a user who holds the
-`AFH_ADMIN` role.
+`AFH_ADMIN` role. The same text is in the Hub itself, under **Administration > FAQ for IT**
+(page 68), for application owners and admins.
 
 ---
 
@@ -49,7 +50,7 @@ section 3.
 | Part | Where | What it is |
 |---|---|---|
 | Database layer | One schema (`AFH` by default) | 37 tables, 46 views, 24 PL/SQL packages, 6 scheduler jobs |
-| Hub application | The APEX workspace that owns your host applications | One application, 32 pages, imported with `AFH` as its parsing schema |
+| Hub application | The APEX workspace that owns your host applications | One application, 33 pages, imported with `AFH` as its parsing schema |
 | Host adapter | Each host application | Two JavaScript files and one CSS file as static files, one Global Page region, one navigation entry |
 
 Business rules live in the packages. The pages only call package APIs and read `AFH_V_*` views.
@@ -149,9 +150,9 @@ are off, because a full import ends every session of that application.
 | Number | Example | Where to read it | Changes when |
 |---|---|---|---|
 | Product version | `0.1.1` | `AFH_INSTALL_CONFIG.PRODUCT_VERSION`, page 60 | the database layer changes |
-| Application release | `Release 1.0.59` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
+| Application release | `Release 1.0.60` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
 
-A public release is tagged with both, for example `v0.1.1-r1.0.59`.
+A public release is tagged with both, for example `v0.1.1-r1.0.60`.
 
 ### How do I roll back?
 
@@ -336,7 +337,7 @@ tickets stay as they are. To take away only a role, end the grant or set an expi
 |---|---|
 | 1 My Work, 2 All Feedback, 3 Application Health, 10 Ticket, 20 Submit, 50 Notifications, 51 Notification Preferences | Everyone |
 | 30 Developer Workbench, 40 Releases | Developer and above |
-| 60 Administration, 62 Routing and Ownership | Application owner and admin |
+| 60 Administration, 62 Routing and Ownership, 68 FAQ for IT | Application owner and admin |
 | 61 Applications and Environments, 63 Users and Roles, 64 Taxonomy and Workflow, 65 Notification Templates, 66 Attachments and Retention, 67 Integration Health | Admin |
 
 The navigation menu shows each user only the pages they can open. Page-level authorization is

@@ -22,6 +22,7 @@ prompt --install
 @@application/shared_components/files/afh_hub_fields_js.sql
 @@application/shared_components/files/afh_hub_evidence_js.sql
 @@application/shared_components/files/afh_hub_annotate_js.sql
+@@application/shared_components/files/afh_faq_html.sql
 @@application/plugin_settings.sql
 @@application/shared_components/security/authorizations/afh_is_authenticated.sql
 @@application/shared_components/security/authorizations/afh_is_admin.sql
@@ -84,6 +85,7 @@ prompt --install
 @@application/pages/page_00065.sql
 @@application/pages/page_00066.sql
 @@application/pages/page_00067.sql
+@@application/pages/page_00068.sql
 @@application/pages/page_00100.sql
 @@application/pages/page_00101.sql
 @@application/pages/page_00200.sql
