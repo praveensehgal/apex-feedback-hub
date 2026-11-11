@@ -2,7 +2,7 @@
 
 For the DBAs, APEX developers and administrators who install, run and support the Feedback Hub.
 It assumes you know Oracle APEX and have not seen this product before. It describes product
-version **0.1.1**, application **Release 1.0.61**. The step-by-step procedures are in
+version **0.1.1**, application **Release 1.0.62**. The step-by-step procedures are in
 `INSTALL.md`, every setting is in `CONFIGURATION.md`, and upgrades are in `UPGRADE-AND-ROLLBACK.md`.
 This FAQ explains how the parts fit together and answers the questions those documents don't.
 
@@ -150,9 +150,9 @@ are off, because a full import ends every session of that application.
 | Number | Example | Where to read it | Changes when |
 |---|---|---|---|
 | Product version | `0.1.1` | `AFH_INSTALL_CONFIG.PRODUCT_VERSION`, page 60 | the database layer changes |
-| Application release | `Release 1.0.61` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
+| Application release | `Release 1.0.62` | `APEX_APPLICATIONS.VERSION`, or App Builder | anything in the APEX application changes |
 
-A public release is tagged with both, for example `v0.1.1-r1.0.61`.
+A public release is tagged with both, for example `v0.1.1-r1.0.62`.
 
 ### How do I roll back?
 
@@ -612,8 +612,9 @@ done.
 
 From the user's row in `AFH_USERS`, column `EMAIL`. Mail and digests read nothing else.
 
-The Hub fills it on its own in only one case: someone signs in on the Hub's **own** login page.
-It then stores the APEX account's e-mail, or `APP_USER` itself when that looks like an address.
+The Hub fills it on its own in only one case: someone with no address yet signs in on the Hub's
+**own** login page. It then stores the APEX account's e-mail, or `APP_USER` itself when that
+looks like an address.
 
 Users who reach the Hub from a host application in the same workspace (shared-session mode)
 never pass the Hub's login. They are registered the first time they open the Hub, with **no
@@ -632,8 +633,9 @@ Addresses are not case-sensitive. The Hub trims them and stores them in lower ca
 way they are entered, and the constraint `AFH_USERS_CK3` refuses anything else written straight
 to the table. Logins are not case-sensitive either.
 
-A later sign-in never blanks an address that is already stored. It only fills an empty one or
-replaces it with a newer value it found. Saving a blank e-mail on page 63 clears it.
+Your admins own the addresses. Once an address is stored, sign-in never changes or blanks it;
+only page 63 (or your own job calling `update_user`) does. Saving a blank e-mail on page 63
+clears it, and the next sign-in on the Hub's own login page may fill it again.
 
 ### What is in an e-mail?
 

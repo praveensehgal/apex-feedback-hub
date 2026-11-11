@@ -146,7 +146,8 @@ CREATE OR REPLACE PACKAGE BODY afh_security_pkg AS
     END IF;
     UPDATE afh_users
        SET display_name = COALESCE(SUBSTR(p_display_name, 1, 255), display_name),
-           email        = COALESCE(normalize_email(p_email), email),
+           -- Addresses are maintained by admins (page 630); sign-in only fills an empty one.
+           email        = COALESCE(email, normalize_email(p_email)),
            last_seen_at = CASE WHEN l_touch = 'Y' THEN SYSTIMESTAMP ELSE last_seen_at END
      WHERE user_id = p_user_id;
   END refresh_user;
