@@ -1,0 +1,660 @@
+<div class="afh-faq-intro"><p>For the DBAs, APEX developers and administrators who install, run and support the Feedback Hub. It assumes you know Oracle APEX and have not seen this product before. It describes product version <strong>0.1.1</strong>, application <strong>Release 1.0.62</strong>. The step-by-step procedures are in <code>INSTALL.md</code>, every setting is in <code>CONFIGURATION.md</code>, and upgrades are in <code>UPGRADE-AND-ROLLBACK.md</code>. This FAQ explains how the parts fit together and answers the questions those documents don't.</p>
+<p>Page numbers below are pages of the Hub application. <em>Admin</em> means a user who holds the <code>AFH_ADMIN</code> role. The same text is in the Hub itself, under <strong>Administration &gt; FAQ for IT</strong> (page 68), for application owners and admins.</p><p class="afh-faq-total">87 questions in 10 sections</p></div>
+<nav class="afh-faq-toc" aria-label="FAQ sections"><a href="#faq-s1"><span class="afh-faq-num">01</span>The product in brief</a><a href="#faq-s2"><span class="afh-faq-num">02</span>Installation, upgrades and versions</a><a href="#faq-s3"><span class="afh-faq-num">03</span>Identity, sign-in and security</a><a href="#faq-s4"><span class="afh-faq-num">04</span>Roles and user administration</a><a href="#faq-s5"><span class="afh-faq-num">05</span>Connecting a host application</a><a href="#faq-s6"><span class="afh-faq-num">06</span>Tickets and workflow</a><a href="#faq-s7"><span class="afh-faq-num">07</span>Notifications and e-mail</a><a href="#faq-s8"><span class="afh-faq-num">08</span>Data, retention and storage</a><a href="#faq-s9"><span class="afh-faq-num">09</span>Operations and troubleshooting</a><a href="#faq-s10"><span class="afh-faq-num">10</span>Branding and customization</a></nav>
+<section class="afh-faq-sec" id="faq-s1"><h2><span class="afh-faq-num">01</span>The product in brief<span class="afh-faq-count">8</span></h2><details class="afh-faq-qa" id="faq-what-is-the-feedback-hub"><summary>What is the Feedback Hub?</summary><div class="afh-faq-a"><p>An Oracle APEX application for collecting feedback and managing tickets. Users press <strong>Feedback</strong> on any page of an integrated APEX application (the <em>host application</em>). The Hub opens in an overlay on top of that page, captures what the user was looking at, and files a ticket. Developers then triage, discuss, fix, test and close the ticket in the Hub. Every step is recorded.</p></div></details><details class="afh-faq-qa" id="faq-what-does-it-capture-that-a-generic-bug-tracker-can-t"><summary>What does it capture that a generic bug tracker can't?</summary><div class="afh-faq-a"><p>It runs inside APEX, so the ticket records:</p>
+<ul>
+<li>the application, page, environment and adapter version, taken from a trusted launch rather than a URL anyone could edit;</li>
+<li>every page item's name, type and value, both what the browser shows and what the server holds in session state, so a developer can see the user's unsaved changes;</li>
+<li>a screenshot of the page, which the user can annotate (arrows, boxes, freehand, blur, text);</li>
+<li>browser, viewport, locale, time zone and APEX version.</li>
+</ul>
+<p>Passwords, tokens, cookies and anything that looks like a credential are never captured. See section 3.</p></div></details><details class="afh-faq-qa" id="faq-who-uses-which-part"><summary>Who uses which part?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Uses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anyone signed in to a host application</td>
+<td>Feedback button, My Work, All Feedback, ticket pages, notifications</td>
+</tr>
+<tr>
+<td>Testers</td>
+<td>The above, plus test requests and recording test results</td>
+</tr>
+<tr>
+<td>Developers</td>
+<td>The above, plus Developer Workbench (queue, board, bulk actions, workload) and Releases</td>
+</tr>
+<tr>
+<td>Application owners</td>
+<td>The above, plus routing rules and releases for their applications</td>
+</tr>
+<tr>
+<td>Admins</td>
+<td>Everything, including Administration (pages 60 to 67)</td>
+</tr>
+</tbody>
+</table></div></details><details class="afh-faq-qa" id="faq-what-gets-installed"><summary>What gets installed?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Where</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database layer</td>
+<td>One schema (<code>AFH</code> by default)</td>
+<td>37 tables, 46 views, 24 PL/SQL packages, 6 scheduler jobs</td>
+</tr>
+<tr>
+<td>Hub application</td>
+<td>The APEX workspace that owns your host applications</td>
+<td>One application, 33 pages, imported with <code>AFH</code> as its parsing schema</td>
+</tr>
+<tr>
+<td>Host adapter</td>
+<td>Each host application</td>
+<td>Two JavaScript files and one CSS file as static files, one Global Page region, one navigation entry</td>
+</tr>
+</tbody>
+</table>
+<p>Business rules live in the packages. The pages only call package APIs and read <code>AFH_V_*</code> views.</p></div></details><details class="afh-faq-qa" id="faq-does-it-need-anything-outside-the-database-and-apex"><summary>Does it need anything outside the database and APEX?</summary><div class="afh-faq-a"><p>No. There is no separate web server, message queue, search engine, CDN or external AI service. Mail goes through <code>APEX_MAIL</code>. Duplicate matching uses <code>UTL_MATCH</code>. The one third-party browser library (html2canvas, for screenshots) ships as a static file with its license.</p></div></details><details class="afh-faq-qa" id="faq-how-many-hubs-do-we-need"><summary>How many Hubs do we need?</summary><div class="afh-faq-a"><p>One per APEX instance. A Hub serves every host application in the instance it is installed in. If DEV, TEST and PROD are separate instances (the usual case), each gets its own Hub, installed the same way. Use the same Hub application ID in all three so host settings match across tiers. If one instance hosts several tiers, one Hub can serve them all: register each environment against the application (section 5).</p></div></details><details class="afh-faq-qa" id="faq-what-versions-does-it-support"><summary>What versions does it support?</summary><div class="afh-faq-a"><p>Oracle Database 19c or later, and Oracle APEX 24.2 or later. All DDL and PL/SQL is written to the 19c subset, and HTTPS in front of ORDS is required.</p></div></details><details class="afh-faq-qa" id="faq-what-does-it-cost-and-who-owns-the-data"><summary>What does it cost, and who owns the data?</summary><div class="afh-faq-a"><p>The product is MIT-licensed. Releases are published at <a href="https://github.com/praveensehgal/apex-feedback-hub">https://github.com/praveensehgal/apex-feedback-hub</a>. It is installed into your own database, so tickets, attachments, users and mail delivery stay with you. There is no hosted service and no telemetry. <code>LICENSE_KEY</code> exists only as a hook for a future release, and nothing checks it today.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s2"><h2><span class="afh-faq-num">02</span>Installation, upgrades and versions<span class="afh-faq-count">11</span></h2><details class="afh-faq-qa" id="faq-what-privileges-does-the-install-need"><summary>What privileges does the install need?</summary><div class="afh-faq-a"><p>A DBA creates the schema with <code>CREATE SESSION</code>, <code>TABLE</code>, <code>VIEW</code>, <code>SEQUENCE</code>, <code>PROCEDURE</code>, <code>TRIGGER</code>, <code>JOB</code>, <code>TYPE</code> and <code>SYNONYM</code>, plus <code>EXECUTE ON sys.dbms_crypto</code>. It needs no DBA role and no <code>APEX_ADMINISTRATOR_ROLE</code>. A workspace administrator then assigns the schema to the workspace. Everything else runs as the product schema.</p></div></details><details class="afh-faq-qa" id="faq-how-long-does-it-take"><summary>How long does it take?</summary><div class="afh-faq-a"><p>About 30 minutes per environment, plus wiring each host application (section 5).</p></div></details><details class="afh-faq-qa" id="faq-in-what-order-do-things-happen"><summary>In what order do things happen?</summary><div class="afh-faq-a"><ol type="1">
+<li>Verify the bundle: <code>shasum -a 256 -c MANIFEST.sha256</code> must report every file <code>OK</code>.</li>
+<li>Run <code>database/install/install.sql</code> as the product schema.</li>
+<li>Import <code>apex/application/install.sql</code> into the workspace.</li>
+<li>Attach your authentication scheme to the Hub (section 3).</li>
+<li>Set the day-one configuration and create the first admin (section 4).</li>
+<li>Enable the scheduler jobs you want (section 9).</li>
+<li>Register each host application and install the adapter in it (section 5).</li>
+</ol></div></details><details class="afh-faq-qa" id="faq-is-the-database-install-safe-to-re-run"><summary>Is the database install safe to re-run?</summary><div class="afh-faq-a"><p>Yes. Every step checks before it creates or changes anything, and the seed never overwrites a value you have changed. Re-running the same version is the normal way to repair a partial install. The installer refuses a schema that holds a <em>different</em> product version (<code>AFH-INS-005</code>); a different version goes through <code>database/upgrades</code>.</p></div></details><details class="afh-faq-qa" id="faq-how-do-i-know-the-install-worked"><summary>How do I know the install worked?</summary><div class="afh-faq-a"><p>The script ends with <code>install complete</code> and no <code>ORA-</code> lines, and this returns <code>0</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">FROM</span> user_objects</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a> <span class="kw">WHERE</span> status <span class="op">=</span> <span class="st">&#39;INVALID&#39;</span> <span class="kw">AND</span> object_name <span class="kw">NOT</span> <span class="kw">LIKE</span> <span class="st">&#39;AFH\_TEST\_%&#39;</span> <span class="kw">ESCAPE</span> <span class="st">&#39;\&#39;</span>;</span></code></pre></div></div></details><details class="afh-faq-qa" id="faq-why-are-some-afh-test-packages-invalid"><summary>Why are some <code>AFH_TEST_*</code> packages invalid?</summary><div class="afh-faq-a"><p>That is intended. They are the product's own test harness. Their test-only code is compiled out of a customer installation, so they stay invalid and nothing calls them. Leave them out of your invalid-object checks, as the query above does.</p></div></details><details class="afh-faq-qa" id="faq-why-does-every-application-import-reset-the-sign-in"><summary>Why does every application import reset the sign-in?</summary><div class="afh-faq-a"><p>The authentication scheme is part of the APEX application, so importing a new release with <em>Replace</em> puts the bundle's placeholder scheme (Oracle APEX Accounts) back as current. Re-attach your scheme and make it current after every import, before users return. Export your scheme once (Shared Components, Authentication Schemes) so this takes two minutes. Everything else you configure lives in the database and survives the import: applications, environments, routing rules, users, roles, templates and tickets.</p></div></details><details class="afh-faq-qa" id="faq-what-is-the-order-for-an-upgrade"><summary>What is the order for an upgrade?</summary><div class="afh-faq-a"><p>Database first, then the application. A new application release may call package code the old database layer doesn't have, but never the reverse. Schedule the application import when users are off, because a full import ends every session of that application.</p></div></details><details class="afh-faq-qa" id="faq-there-are-two-version-numbers-what-do-they-mean"><summary>There are two version numbers. What do they mean?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Example</th>
+<th>Where to read it</th>
+<th>Changes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product version</td>
+<td><code>0.1.1</code></td>
+<td><code>AFH_INSTALL_CONFIG.PRODUCT_VERSION</code>, page 60</td>
+<td>the database layer changes</td>
+</tr>
+<tr>
+<td>Application release</td>
+<td><code>Release 1.0.62</code></td>
+<td><code>APEX_APPLICATIONS.VERSION</code>, or App Builder</td>
+<td>anything in the APEX application changes</td>
+</tr>
+</tbody>
+</table>
+<p>A public release is tagged with both, for example <code>v0.1.1-r1.0.62</code>.</p></div></details><details class="afh-faq-qa" id="faq-how-do-i-roll-back"><summary>How do I roll back?</summary><div class="afh-faq-a"><ul>
+<li><strong>Application import failed:</strong> APEX rolls it back and the previous application is untouched.</li>
+<li><strong>New application misbehaves:</strong> re-import the previous bundle over the same ID and re-attach your authentication scheme.</li>
+<li><strong>Remove the Hub completely:</strong> delete the application first, then run <code>database/uninstall/uninstall.sql</code> with <code>DEFINE afh_confirm_uninstall = 'YES'</code>. Take <code>expdp ... schemas=AFH</code> first if you want to keep the tickets. <code>DEFINE afh_keep_data = 'YES'</code> drops the code and keeps the tables.</li>
+</ul>
+<p>Nothing in the install or uninstall touches a host application's schema, except the optional signed-envelope package (section 5).</p></div></details><details class="afh-faq-qa" id="faq-do-we-need-the-docker-stack-or-the-test-scripts"><summary>Do we need the Docker stack or the test scripts?</summary><div class="afh-faq-a"><p>No. The bundle leaves out the development stack, the test harness runner and the demo data. The Hub installs into your existing database and APEX instance.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s3"><h2><span class="afh-faq-num">03</span>Identity, sign-in and security<span class="afh-faq-count">11</span></h2><details class="afh-faq-qa" id="faq-does-the-hub-have-its-own-login"><summary>Does the Hub have its own login?</summary><div class="afh-faq-a"><p>No. The Hub trusts the identity the host application has already established. It never sees a password. There are two ways to pass that identity:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Use when</th>
+<th>How it works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shared session</strong> (default)</td>
+<td>The Hub and the host are in the same APEX workspace</td>
+<td>The Hub's authentication scheme uses the host's session cookie name, so the user's existing APEX session is valid in the Hub</td>
+</tr>
+<tr>
+<td><strong>Signed envelope</strong></td>
+<td>Different workspaces or instances</td>
+<td>A PL/SQL package in the host schema signs a short-lived launch token (HMAC-SHA256) with a secret shared with the Hub</td>
+</tr>
+</tbody>
+</table></div></details><details class="afh-faq-qa" id="faq-what-exactly-do-i-set-up-for-shared-session"><summary>What exactly do I set up for shared session?</summary><div class="afh-faq-a"><p>In the Hub application, copy the host's authentication scheme (or create the same type with the same settings) and make it current. The setting that matters is <strong>Session cookie name</strong>, which must be identical to the host's. Keep the secure-cookie flag on, and keep <em>Oracle APEX Accounts</em> as a lockout fallback. Test it: sign in to the host, then open <code>f?p=&lt;HUB_APP_ID&gt;:1:&amp;SESSION.</code> in the same browser. You should be signed in with no second prompt.</p></div></details><details class="afh-faq-qa" id="faq-who-is-the-user-as-far-as-the-hub-is-concerned"><summary>Who is the user, as far as the Hub is concerned?</summary><div class="afh-faq-a"><p>The APEX <code>APP_USER</code> value, upper-cased and trimmed. The first time someone opens the Hub, a row is created for them in <code>AFH_USERS</code>. When they sign in on the Hub's own login page, it also records a display name and an e-mail address if it can find one. Users who arrive from a host application get neither, so an admin or a job of yours fills them in (section 7).</p></div></details><details class="afh-faq-qa" id="faq-why-did-the-feedback-panel-say-temporarily-unavailable-after"><summary>Why did the Feedback panel say "temporarily unavailable" after someone signed in again?</summary><div class="afh-faq-a"><p>In shared-session mode the host and the Hub use the same session cookie. If someone signs in to the Hub separately (a different account, or <code>f?p=&lt;HUB_APP_ID&gt;</code> on its own in the same browser), that overwrites the shared cookie and the host's session no longer matches. Sign in once on the host and open the Hub from there.</p></div></details><details class="afh-faq-qa" id="faq-can-a-user-forge-a-launch-to-file-a-ticket-as-someone-else-o"><summary>Can a user forge a launch to file a ticket as someone else, or for another application?</summary><div class="afh-faq-a"><p>No. Each press of Feedback creates a launch <em>handoff</em> that:</p>
+<ul>
+<li>expires after 120 seconds (<code>HANDOFF_TTL_SECONDS</code>, capped at 120);</li>
+<li>can be used once (a replayed nonce is refused);</li>
+<li>in shared mode, must come from the same APEX session as the signed-in user;</li>
+<li>in signed mode, must carry a valid signature from the host's PL/SQL;</li>
+<li>must name a registered, active application and environment.</li>
+</ul>
+<p>A refused launch shows one generic message (<code>AFH-CTX-001</code>) that doesn't reveal which check failed. The reason is written to <code>AFH_INTEGRATION_EVENTS.SAFE_DETAIL</code> (for example <code>EXPIRED</code>, <code>REPLAY</code>, <code>SESSION</code>, <code>URL_POLICY</code>) and shown on Integration Health (page 67).</p></div></details><details class="afh-faq-qa" id="faq-who-can-see-what"><summary>Who can see what?</summary><div class="afh-faq-a"><p>Every signed-in user can find and read every ticket: its description, public comments and public attachments. This is deliberate, to stop people reporting the same problem twice. Roles control actions, not visibility.</p>
+<p>The sensitive parts are restricted to developers, application owners and admins, and checked on the server on every read:</p>
+<ul>
+<li>the raw diagnostic snapshot (page items, server values, client facts);</li>
+<li>internal notes;</li>
+<li>restricted attachments.</li>
+</ul>
+<p>Opening a ticket's diagnostic context is itself written to the audit log.</p></div></details><details class="afh-faq-qa" id="faq-what-is-never-captured"><summary>What is never captured?</summary><div class="afh-faq-a"><p>Password fields, and any item whose name looks like a credential (<code>passw</code>, <code>pwd</code>, <code>token</code>, <code>secret</code>, <code>cookie</code>, <code>authorization</code>, <code>apikey</code>, <code>credential</code>), are recorded as <em>EXCLUDED</em> with no value. The adapter filters them in the browser and the database filters them again on the server. Session cookies and authentication tokens are never collected, logged or audited.</p></div></details><details class="afh-faq-qa" id="faq-are-uploads-safe"><summary>Are uploads safe?</summary><div class="afh-faq-a"><ul>
+<li>Only the extensions in <code>ATTACH_ALLOWED_EXT</code> are accepted (default: PNG, JPG, JPEG, PDF, TXT, CSV, XLSX, DOCX).</li>
+<li>HTML, SVG, scripts and executables are always refused, whatever that list says.</li>
+<li>Image and PDF types must have a MIME type that matches the extension.</li>
+<li>Each file gets a SHA-256 checksum.</li>
+<li>Downloads are sent as attachments. Only images and PDFs display inline, and uploaded HTML is never rendered.</li>
+<li>Size limits are 25 MB per file and 100 MB per ticket by default.</li>
+</ul></div></details><details class="afh-faq-qa" id="faq-can-a-comment-carry-a-script"><summary>Can a comment carry a script?</summary><div class="afh-faq-a"><p>No. Comments are stored as plain text with a small markup (bold, italic, code, lists, links, @mentions). The HTML is built from that text only after everything has been escaped, and there is no way to submit HTML. Links allow only http, https and mailto.</p></div></details><details class="afh-faq-qa" id="faq-is-there-an-audit-trail"><summary>Is there an audit trail?</summary><div class="afh-faq-a"><p>Yes. <code>AFH_AUDIT_EVENTS</code> is append-only: an update or delete raises <code>AFH-SYS-002</code>. It records ticket creation, field changes, assignments, comments and comment edits, merges, tests, status changes, archiving, deletions, configuration changes, template changes and role grants. Each change writes its audit row in the same transaction as the change.</p></div></details><details class="afh-faq-qa" id="faq-what-is-act-as"><summary>What is "Act As"?</summary><div class="afh-faq-a"><p>A development aid that lets any signed-in user act as another user from the navigation bar. It is controlled by <code>ACT_AS_ENABLED</code>, which must stay <code>N</code> on every customer installation. The installer seeds <code>N</code>, and the setting can't be changed from the UI.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s4"><h2><span class="afh-faq-num">04</span>Roles and user administration<span class="afh-faq-count">7</span></h2><details class="afh-faq-qa" id="faq-what-roles-are-there"><summary>What roles are there?</summary><div class="afh-faq-a"><p>Roles are cumulative. Each one includes everything below it:</p>
+<p><code>USER</code> &lt; <code>TESTER</code> &lt; <code>DEVELOPER</code> &lt; <code>APP_OWNER</code> &lt; <code>AFH_ADMIN</code></p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>USER</code> (everyone)</td>
+<td>Submit feedback, search and read tickets, comment, attach files, follow, "This affects me too", answer questions, reopen their own resolved report</td>
+</tr>
+<tr>
+<td><code>TESTER</code></td>
+<td>Record test results, pass or fail a fix</td>
+</tr>
+<tr>
+<td><code>DEVELOPER</code></td>
+<td>Triage, change official severity and priority, assign, move status, internal notes, root cause and resolution, merge duplicates, Developer Workbench, Releases</td>
+</tr>
+<tr>
+<td><code>APP_OWNER</code></td>
+<td>Routing rules, releases, and queue ownership for their applications</td>
+</tr>
+<tr>
+<td><code>AFH_ADMIN</code></td>
+<td>Administration: applications, environments, users and roles, taxonomy and workflow, templates, retention, configuration</td>
+</tr>
+</tbody>
+</table>
+<p>A grant can apply to one host application or to the whole installation. Grants can have effective and expiry dates.</p></div></details><details class="afh-faq-qa" id="faq-who-needs-to-be-set-up-before-they-can-use-it"><summary>Who needs to be set up before they can use it?</summary><div class="afh-faq-a"><p>Only people who need more than <code>USER</code>. Anyone signed in through a host application is registered on first use and can submit feedback straight away.</p></div></details><details class="afh-faq-qa" id="faq-how-do-i-create-the-first-admin"><summary>How do I create the first admin?</summary><div class="afh-faq-a"><p>Nobody can open Users and Roles until someone holds <code>AFH_ADMIN</code>, so the first grant is done by SQL, connected as the product schema:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  afh_security_pkg.bootstrap_admin(p_subject <span class="op">=&gt;</span> <span class="st">&#39;&lt;APP_USER value&gt;&#39;</span>, p_display_name <span class="op">=&gt;</span> <span class="st">&#39;&lt;Name&gt;&#39;</span>);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">COMMIT</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">/</span></span></code></pre></div>
+<p>This works only while no active admin exists, and refuses afterwards (<code>AFH-AUTH-002</code>). Use the exact <code>APP_USER</code> value the host shows for that person. After that, all grants are made on Users and Roles (page 63).</p></div></details><details class="afh-faq-qa" id="faq-i-granted-a-role-and-nothing-changed-why"><summary>I granted a role and nothing changed. Why?</summary><div class="afh-faq-a"><p>APEX caches authorization results for the session. The user needs to sign out of the Hub and back in.</p></div></details><details class="afh-faq-qa" id="faq-why-isn-t-someone-in-the-grant-list"><summary>Why isn't someone in the grant list?</summary><div class="afh-faq-a"><p>The list shows only users who have opened the Hub at least once. Ask them to open it (pressing Feedback is enough), then grant the role.</p></div></details><details class="afh-faq-qa" id="faq-how-do-i-remove-someone"><summary>How do I remove someone?</summary><div class="afh-faq-a"><p>Deactivate the user on Users and Roles. A deactivated user is locked out, and their history and tickets stay as they are. To take away only a role, end the grant or set an expiry date.</p></div></details><details class="afh-faq-qa" id="faq-which-pages-does-each-role-see"><summary>Which pages does each role see?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Pages</th>
+<th>Who</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 My Work, 2 All Feedback, 3 Application Health, 10 Ticket, 20 Submit, 50 Notifications, 51 Notification Preferences</td>
+<td>Everyone</td>
+</tr>
+<tr>
+<td>30 Developer Workbench, 40 Releases</td>
+<td>Developer and above</td>
+</tr>
+<tr>
+<td>60 Administration, 62 Routing and Ownership, 68 FAQ for IT</td>
+<td>Application owner and admin</td>
+</tr>
+<tr>
+<td>61 Applications and Environments, 63 Users and Roles, 64 Taxonomy and Workflow, 65 Notification Templates, 66 Attachments and Retention, 67 Integration Health</td>
+<td>Admin</td>
+</tr>
+</tbody>
+</table>
+<p>The navigation menu shows each user only the pages they can open. Page-level authorization is the control, and hiding a menu entry is only a convenience.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s5"><h2><span class="afh-faq-num">05</span>Connecting a host application<span class="afh-faq-count">8</span></h2><details class="afh-faq-qa" id="faq-what-changes-in-the-host-application"><summary>What changes in the host application?</summary><div class="afh-faq-a"><p>No business logic changes. You add:</p>
+<ol type="1">
+<li>Three static files: <code>html2canvas-1.4.1.min.js</code>, <code>afh_adapter.js</code>, <code>afh_adapter.css</code>, with the two scripts listed in User Interface Attributes (html2canvas first) and the stylesheet in CSS File URLs.</li>
+<li>Three application substitution strings: <code>HUB_APP_ID</code>, <code>AFH_APP_KEY</code>, <code>AFH_ENV_CODE</code>.</li>
+<li>A Global Page region (template <em>Blank with Attributes</em>) that publishes <code>window.AFH_CONFIG</code> from those strings. The full snippet is in <code>INSTALL.md</code> section 7.</li>
+<li>A <strong>Feedback</strong> entry in the navigation bar, with list item CSS class <code>afh-feedback-entry</code>.</li>
+</ol>
+<p>Signed-envelope mode also installs <code>afh_host_pkg</code> in the host schema and adds two Global Page AJAX callbacks.</p></div></details><details class="afh-faq-qa" id="faq-what-do-i-register-on-the-hub-side"><summary>What do I register on the Hub side?</summary><div class="afh-faq-a"><p>On Applications and Environments (page 61):</p>
+<ul>
+<li><strong>Application:</strong> a stable upper-case <em>app key</em> (the value of <code>AFH_APP_KEY</code>), the host's APEX application ID, an owner, and the identity mode. In signed mode the Hub shows the shared secret <strong>once</strong>. Put it in the host's secret store.</li>
+<li><strong>Environment:</strong> one per tier the application reports from (<code>DEV</code>, <code>TEST</code>, <code>PROD</code>, and so on). The code must equal the host's <code>AFH_ENV_CODE</code>. This code appears on every ticket and in every e-mail.</li>
+</ul></div></details><details class="afh-faq-qa" id="faq-what-is-the-environment-s-base-url-pattern-for"><summary>What is the environment's base URL pattern for?</summary><div class="afh-faq-a"><p>It is optional, and it guards against misconfiguration rather than attack. Set it (for example <code>https://test.example.com/%</code>) only when one Hub serves several tiers and you want a host that was copied with the wrong <code>AFH_ENV_CODE</code> to be refused instead of filed under the wrong environment. It must match the address users actually type, including port and path. A mismatch shows users <code>AFH-CTX-001</code>, with <code>URL_POLICY</code> recorded on Integration Health.</p></div></details><details class="afh-faq-qa" id="faq-does-the-feedback-button-affect-the-host-page"><summary>Does the Feedback button affect the host page?</summary><div class="afh-faq-a"><p>No. The Hub opens in an iframe overlay, so the host page doesn't navigate and the user's unsaved work stays in place. If the Hub is down, the overlay shows a safe message and the host page carries on. Without <code>AFH.init</code> the adapter does nothing at all.</p></div></details><details class="afh-faq-qa" id="faq-why-does-the-hub-have-to-allow-framing"><summary>Why does the Hub have to allow framing?</summary><div class="afh-faq-a"><p>The overlay loads Hub page 20 in an iframe. The Hub application allows <em>Embed in Frames: from same origin</em>, so the host and the Hub must be served from the same origin (scheme, host and port).</p></div></details><details class="afh-faq-qa" id="faq-how-reliable-is-the-screenshot"><summary>How reliable is the screenshot?</summary><div class="afh-faq-a"><p>The screenshot is drawn from the page itself (html2canvas), not taken by the operating system. It handles normal APEX pages well. Charts drawn on canvas, frozen grid headers and very heavy pages can come out partly blank, and the ticket then records the screenshot as <code>PARTIAL</code>. Users can always paste or upload their own image instead. Adapter 1.0.3 captures the visible area to keep heavy pages responsive.</p></div></details><details class="afh-faq-qa" id="faq-how-do-i-know-which-adapter-version-a-host-runs"><summary>How do I know which adapter version a host runs?</summary><div class="afh-faq-a"><p>The adapter reports its version on every launch. Integration Health shows it per application. <code>MIN_ADAPTER_VERSION</code> rejects adapters older than the minimum you set.</p></div></details><details class="afh-faq-qa" id="faq-can-the-host-react-when-a-ticket-is-created"><summary>Can the host react when a ticket is created?</summary><div class="afh-faq-a"><p>Yes. The adapter fires an <code>afh:created</code> DOM event on <code>document</code>, with <code>detail.ticketNo</code> and <code>detail.ticketUrl</code>.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s6"><h2><span class="afh-faq-num">06</span>Tickets and workflow<span class="afh-faq-count">12</span></h2><details class="afh-faq-qa" id="faq-what-does-a-ticket-go-through"><summary>What does a ticket go through?</summary><div class="afh-faq-a"><pre><code>New -&gt; Under Review -&gt; Accepted -&gt; Planned -&gt; In Progress -&gt; Ready for Testing -&gt; Resolved -&gt; Closed
+            |
+            +-&gt; More Information Needed (answering moves it back to Under Review)</code></pre>
+<p>A ticket can also end as <strong>Duplicate</strong>, <strong>Rejected</strong> or <strong>Cannot Reproduce</strong>. <strong>Reopened</strong> brings a closed or resolved ticket back for triage. The final statuses are Closed, Duplicate, Rejected and Cannot Reproduce.</p></div></details><details class="afh-faq-qa" id="faq-who-can-move-a-ticket-and-what-does-each-step-require"><summary>Who can move a ticket, and what does each step require?</summary><div class="afh-faq-a"><p>Developers and above move tickets. Some transitions need facts before the Hub accepts them:</p>
+<table>
+<thead>
+<tr>
+<th>Transition</th>
+<th>Requires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Under Review to Accepted</td>
+<td>Official classification</td>
+</tr>
+<tr>
+<td>Accepted to Planned</td>
+<td>A target release or a planning note</td>
+</tr>
+<tr>
+<td>To In Progress</td>
+<td>An assignee</td>
+</tr>
+<tr>
+<td>In Progress to Ready for Testing</td>
+<td>Root cause, resolution and a test request</td>
+</tr>
+<tr>
+<td>Ready for Testing to Resolved or back to In Progress</td>
+<td>A passed or failed test, recorded by the assigned tester or a developer</td>
+</tr>
+<tr>
+<td>To More Information Needed, Rejected or Cannot Reproduce</td>
+<td>A reason</td>
+</tr>
+<tr>
+<td>To Duplicate</td>
+<td>A master ticket and a reason</td>
+</tr>
+<tr>
+<td>Reopen</td>
+<td>A reason. The reporter or the tester can reopen a Resolved ticket, and must add evidence. Only developers or admins can reopen a ticket from a final status</td>
+</tr>
+</tbody>
+</table>
+<p>The Hub enforces these in the database (<code>AFH-WF-001</code> when refused), so no page or script can skip them. Admins can rename statuses and change transitions on Taxonomy and Workflow (page 64).</p></div></details><details class="afh-faq-qa" id="faq-how-does-a-ticket-leave-everyone-s-list"><summary>How does a ticket leave everyone's list?</summary><div class="afh-faq-a"><ol type="1">
+<li>A passed test moves it to <strong>Resolved</strong>.</li>
+<li>A Resolved ticket with no activity for <code>AUTO_CLOSE_DAYS</code> (default 14) is closed automatically by <code>AFH_JOB_AUTO_CLOSE</code>. <strong>This needs the job enabled.</strong> Without it, Resolved tickets stay Resolved until someone closes them.</li>
+<li>Closed, Rejected, Duplicate and Cannot Reproduce tickets are off every open queue.</li>
+<li><code>ARCHIVE_AFTER_DAYS</code> (default 90) after closure, the retention run can mark a ticket archived. An admin can also archive or unarchive a single ticket on page 66.</li>
+</ol>
+<p>Closed and archived tickets can still be searched.</p></div></details><details class="afh-faq-qa" id="faq-what-feedback-types-are-there"><summary>What feedback types are there?</summary><div class="afh-faq-a"><p>Bug, New feature, Enhancement, Usability or accessibility, Data or reporting, Performance, Question, and General. Each type can ask its own extra questions. Bug, for example, asks for expected result, actual result, steps and frequency. Admins maintain types, fields, categories and classification values on page 64.</p></div></details><details class="afh-faq-qa" id="faq-how-are-tickets-numbered"><summary>How are tickets numbered?</summary><div class="afh-faq-a"><p><code>FB-</code> followed by a number, for example <code>FB-0203</code>. Use this number in mail, search and conversation. Internal IDs never appear to users.</p></div></details><details class="afh-faq-qa" id="faq-how-does-a-ticket-find-the-right-developer"><summary>How does a ticket find the right developer?</summary><div class="afh-faq-a"><p>On submit, the Hub checks the routing rules (page 62) by application, page, type, category and environment. If no rule matches, the ticket goes to the application owner. If there's no owner, it goes to the <code>FALLBACK_OWNER_SUBJECT</code> user. Page 62's <strong>Try a route</strong> shows where a sample ticket would land.</p></div></details><details class="afh-faq-qa" id="faq-how-are-duplicates-handled"><summary>How are duplicates handled?</summary><div class="afh-faq-a"><ul>
+<li><strong>While typing:</strong> the submit form suggests similar tickets as the user types a title. The match scores title, description, application, page and type with weights you can configure (<code>DUP_*</code> settings) and includes closed and archived tickets. The user can open a suggestion, follow it, or press "This affects me too" instead of filing a new ticket.</li>
+<li><strong>After the fact:</strong> a developer marks a ticket Duplicate of a master. Nothing is lost. The duplicate keeps its comments, attachments, captures and history, its followers and affected users move to the master, and searching for the duplicate's number leads to the master.</li>
+</ul></div></details><details class="afh-faq-qa" id="faq-what-does-this-affects-me-too-do"><summary>What does "This affects me too" do?</summary><div class="afh-faq-a"><p>It adds the user to the ticket's affected list and makes them a follower. It shows how widely a problem is felt. It is not a vote and does not change official priority.</p></div></details><details class="afh-faq-qa" id="faq-where-do-developers-work"><summary>Where do developers work?</summary><div class="afh-faq-a"><p>On the <strong>Developer Workbench</strong> (page 30):</p>
+<ul>
+<li>a queue and a Kanban board (dragging a card makes the same checked status change as the buttons);</li>
+<li>bulk actions on selected tickets;</li>
+<li>a workload view across developers;</li>
+<li>saved views. Personal views are available to everyone; sharing a view with the team needs developer or above.</li>
+</ul>
+<p><strong>Releases</strong> (page 40) groups tickets and their tests by target release. Application owners and admins create and complete releases.</p></div></details><details class="afh-faq-qa" id="faq-where-do-managers-look"><summary>Where do managers look?</summary><div class="afh-faq-a"><p><strong>Application Health</strong> (page 3) shows the open backlog by application, environment, page, type, status, severity, priority, release and owner. It also shows ticket aging (0-2 days to over 90), recently resolved and reopened tickets, and pages with repeated reports. <strong>My Work</strong> (page 1) shows each person their tasks, tickets they reported, assignments, tests to run, followed tickets and recent activity.</p></div></details><details class="afh-faq-qa" id="faq-what-does-search-cover"><summary>What does search cover?</summary><div class="afh-faq-a"><p>Ticket number, title, description, public comments, application, page, environment, type, category, status, reporter, assignee and release. Search never reads internal notes or diagnostic context.</p></div></details><details class="afh-faq-qa" id="faq-can-comments-be-edited"><summary>Can comments be edited?</summary><div class="afh-faq-a"><p>The author can edit a public comment for <code>COMMENT_EDIT_WINDOW_MIN</code> minutes (default 15). Each earlier version is kept, and the edit is audited. Comments are never deleted. An admin can hide one from the timeline with <code>afh_comment_pkg.archive_comment</code>, which is also audited.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s7"><h2><span class="afh-faq-num">07</span>Notifications and e-mail<span class="afh-faq-count">14</span></h2><details class="afh-faq-qa" id="faq-how-do-notifications-work"><summary>How do notifications work?</summary><div class="afh-faq-a"><p>Every material change on a ticket raises an <em>event</em>: new ticket, assignment, mention, comment, information request and response, status change, priority change, release change, ready for testing, test request and outcome, resolution, closure, reopening, and duplicate merge. The event goes to the user it is aimed at (the assignee, the reporter asked a question, the tester) and to every follower except the person who caused it. Each recipient's preferences decide the channel:</p>
+<ul>
+<li><strong>In-app:</strong> always available. The bell, the Notification Center (page 50) and My Work.</li>
+<li><strong>E-mail:</strong> sent immediately, or collected into a daily or weekly digest.</li>
+</ul></div></details><details class="afh-faq-qa" id="faq-what-are-the-notification-presets"><summary>What are the notification presets?</summary><div class="afh-faq-a"><p>Each user picks one on Notification Preferences (page 51), globally or per application. They can also override single events.</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>E-mail</th>
+<th>Digest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Immediate</td>
+<td>Every event</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Important</strong> (default)</td>
+<td>Assignment, mention, information request, test request, resolution, reopening</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Daily digest</td>
+<td>Only assignment, information request, test request and mention, sent immediately</td>
+<td>Everything else, daily at <code>DIGEST_DAILY_HOUR</code> (default 06:00)</td>
+</tr>
+<tr>
+<td>Weekly digest</td>
+<td>Same as daily</td>
+<td>Everything else, Mondays 06:00</td>
+</tr>
+<tr>
+<td>In-app only</td>
+<td>None</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p><code>DEFAULT_NOTIFY_PRESET</code> sets the preset for users who haven't chosen one.</p></div></details><details class="afh-faq-qa" id="faq-can-a-user-miss-an-assignment-by-turning-e-mail-off"><summary>Can a user miss an assignment by turning e-mail off?</summary><div class="afh-faq-a"><p>No. Assignments, information requests and test requests always appear as tasks in the user's in-app inbox and on My Work, whatever their preferences.</p></div></details><details class="afh-faq-qa" id="faq-what-does-following-a-ticket-mean"><summary>What does following a ticket mean?</summary><div class="afh-faq-a"><p>A follower gets that ticket's notifications, filtered through their preferences. Users follow a ticket automatically when they submit it, comment on it, are @mentioned in it, mark it "affects me too", or are assigned to it. They can also press <strong>Follow</strong> on any ticket.</p></div></details><details class="afh-faq-qa" id="faq-what-is-the-difference-between-unfollow-and-mute"><summary>What is the difference between Unfollow and Mute?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th></th>
+<th>Unfollow</th>
+<th>Mute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Effect</td>
+<td>Removes the user from the ticket's followers</td>
+<td>Keeps them as a follower and silences the ticket</td>
+</tr>
+<tr>
+<td>Receives</td>
+<td>Nothing more, unless directly assigned or asked something later</td>
+<td>No e-mail and no in-app alerts, except direct tasks (assignment, question, test request), which still appear in-app</td>
+</tr>
+<tr>
+<td>Refused when</td>
+<td>The user is the assignee, or has an open assignment or information request on the ticket</td>
+<td>The user is the assignee</td>
+</tr>
+<tr>
+<td>Undo</td>
+<td>Follow again</td>
+<td>Unmute</td>
+</tr>
+</tbody>
+</table>
+<p>Use Mute to stay on the list quietly, for example to see the ticket again under My Work, Following. Use Unfollow to leave the ticket.</p></div></details><details class="afh-faq-qa" id="faq-how-does-e-mail-actually-go-out"><summary>How does e-mail actually go out?</summary><div class="afh-faq-a"><ol type="1">
+<li>The event writes a row to <code>AFH_NOTIFICATIONS</code> with state <code>QUEUED</code>. This happens in the same transaction as the change, so a rolled-back change sends nothing.</li>
+<li><code>AFH_JOB_MAIL_WORKER</code> runs every two minutes. It renders each queued mail from its template and calls <code>APEX_MAIL.SEND</code>.</li>
+<li>APEX's own mail queue delivers it to your SMTP server.</li>
+</ol>
+<p><code>SENT</code> in the Hub means the mail was handed to APEX. Whether your SMTP server accepted it shows in <code>APEX_MAIL_LOG</code>, and the Hub checks that log and reports relay failures on Integration Health. A temporary failure is retried up to <code>MAIL_MAX_RETRIES</code> times (default 3). After that the mail is marked failed, and an admin can retry it from Integration Health (page 67).</p></div></details><details class="afh-faq-qa" id="faq-what-has-to-be-in-place-for-e-mail"><summary>What has to be in place for e-mail?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Who</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instance mail configured (Manage Instance, Instance Settings, Email: SMTP host, port, TLS)</td>
+<td>APEX instance administrator</td>
+</tr>
+<tr>
+<td>A network ACL letting the <strong>APEX engine schema</strong> (<code>APEX_240200</code> on 24.2) connect to the SMTP host. Not the Hub schema.</td>
+<td>DBA</td>
+</tr>
+<tr>
+<td><code>MAIL_FROM</code>: a sender address your SMTP relay accepts</td>
+<td>Admin (page 60)</td>
+</tr>
+<tr>
+<td><code>BASE_URL</code>: the bare ORDS root, for example <code>https://apex.example.com/ords</code>, with no <code>/r/...</code></td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>FEEDBACK_APP_ID</code>: the Hub's application ID</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>MAIL_ENABLED = Y</code>, set last</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>AFH_JOB_MAIL_WORKER</code> enabled, plus the two digest jobs if anyone uses digests</td>
+<td>Admin or DBA</td>
+</tr>
+<tr>
+<td>An e-mail address on each recipient's user record</td>
+<td>See below</td>
+</tr>
+</tbody>
+</table>
+<p>If any other application on the instance already sends mail, the first two rows are already done.</p></div></details><details class="afh-faq-qa" id="faq-where-do-users-e-mail-addresses-come-from"><summary>Where do users' e-mail addresses come from?</summary><div class="afh-faq-a"><p>From the user's row in <code>AFH_USERS</code>, column <code>EMAIL</code>. Mail and digests read nothing else.</p>
+<p>The Hub fills it on its own in only one case: someone with no address yet signs in on the Hub's <strong>own</strong> login page. It then stores the APEX account's e-mail, or <code>APP_USER</code> itself when that looks like an address.</p>
+<p>Users who reach the Hub from a host application in the same workspace (shared-session mode) never pass the Hub's login. They are registered the first time they open the Hub, with <strong>no address</strong>. The same is true for single sign-on that passes a login name, a certificate UPN or a SAML NameID. Users without an address are skipped for e-mail. In-app notifications still work.</p>
+<p>Fill the addresses in one of two ways:</p>
+<ul>
+<li><strong>By hand:</strong> an admin opens <strong>Administration &gt; Users and Roles</strong> (page 63), clicks the user's name, enters the <strong>E-mail</strong> and saves.</li>
+<li><strong>Automatically:</strong> a scheduled job of your own reads your directory or user-profile table and calls <code>afh_security_pkg.update_user(p_user_id, p_display_name, p_email)</code> for each Hub user. Match on <code>AFH_USERS.SUBJECT_CANONICAL</code>, which is the login in upper case.</li>
+</ul>
+<p>Addresses are not case-sensitive. The Hub trims them and stores them in lower case, whichever way they are entered, and the constraint <code>AFH_USERS_CK3</code> refuses anything else written straight to the table. Logins are not case-sensitive either.</p>
+<p>Your admins own the addresses. Once an address is stored, sign-in never changes or blanks it; only page 63 (or your own job calling <code>update_user</code>) does. Saving a blank e-mail on page 63 clears it, and the next sign-in on the Hub's own login page may fill it again.</p></div></details><details class="afh-faq-qa" id="faq-what-is-in-an-e-mail"><summary>What is in an e-mail?</summary><div class="afh-faq-a"><p>The subject reads <code>[&lt;Product&gt; &lt;ENV&gt;] FB-0203 - &lt;what happened&gt;</code>. The body has the ticket title, status, who acted, the application, the environment the ticket came from, a short summary and a link. Restricted facts (page items, internal notes, diagnostics) are never put in mail.</p></div></details><details class="afh-faq-qa" id="faq-where-does-the-link-in-the-mail-go"><summary>Where does the link in the mail go?</summary><div class="afh-faq-a"><p>To <code>BASE_URL/f?p=&lt;FEEDBACK_APP_ID&gt;:11::::11:P11_TICKET_NO:FB-0203</code>. Page 11 (<em>Open Ticket</em>) requires sign-in, checks that the user may view the ticket, then redirects to the ticket page with a properly checksummed URL. Linking straight to page 10 fails with <em>Session state protection violation</em>, because a mail built by a job has no APEX session to compute a checksum. Releases before 1.0.58 linked to page 10 directly.</p></div></details><details class="afh-faq-qa" id="faq-can-we-change-the-wording-of-e-mails"><summary>Can we change the wording of e-mails?</summary><div class="afh-faq-a"><p>Yes, on Notification Templates (page 65), per event and channel. Placeholders include <code>#TICKET_NO#</code>, <code>#TITLE#</code>, <code>#STATUS#</code>, <code>#ACTOR#</code>, <code>#APPLICATION#</code>, <code>#ENVIRONMENT#</code>, <code>#SUMMARY#</code>, <code>#LINK#</code> and <code>#RECIPIENT#</code>, plus <code>#ITEMS#</code> for digests. A template an admin has edited is never overwritten by a later install or upgrade. If no active template exists for an event, a built-in plain template is used.</p></div></details><details class="afh-faq-qa" id="faq-why-do-the-standard-templates-avoid-dashes-and-curly-quotes"><summary>Why do the standard templates avoid dashes and curly quotes?</summary><div class="afh-faq-a"><p>Databases with a single-byte character set (for example <code>WE8ISO8859P1</code>) can't store characters such as the em dash. They show up as <code>&#xBF;</code> in every mail. The shipped templates use plain ASCII only, and edited templates should do the same. To check your database character set:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="fu">value</span> <span class="kw">FROM</span> nls_database_parameters <span class="kw">WHERE</span> parameter <span class="op">=</span> <span class="st">&#39;NLS_CHARACTERSET&#39;</span>;</span></code></pre></div></div></details><details class="afh-faq-qa" id="faq-how-do-i-turn-e-mail-off"><summary>How do I turn e-mail off?</summary><div class="afh-faq-a"><p>Set <code>MAIL_ENABLED = N</code>. Nothing new is queued, the mail worker does nothing, and every notification still appears in-app, so nothing is lost.</p></div></details><details class="afh-faq-qa" id="faq-a-user-says-they-got-no-e-mail-what-do-i-check"><summary>A user says they got no e-mail. What do I check?</summary><div class="afh-faq-a"><ol type="1">
+<li>Their user record has an e-mail address (page 63).</li>
+<li>Their preset sends that event by e-mail (page 51, or <code>DEFAULT_NOTIFY_PRESET</code>). Under <em>Important</em>, a plain comment or status change doesn't send mail.</li>
+<li>They hadn't muted the ticket, and they weren't the person who made the change.</li>
+<li><code>MAIL_ENABLED = Y</code>, and <code>AFH_JOB_MAIL_WORKER</code> is enabled and running (page 67, Scheduler).</li>
+<li>Integration Health shows no mail failure for them.</li>
+<li><code>APEX_MAIL_LOG</code> shows the relay accepted it. If it did, the problem is downstream: spam filtering, or the relay refusing the <code>MAIL_FROM</code> domain.</li>
+</ol></div></details></section>
+<section class="afh-faq-sec" id="faq-s8"><h2><span class="afh-faq-num">08</span>Data, retention and storage<span class="afh-faq-count">4</span></h2><details class="afh-faq-qa" id="faq-where-is-the-data"><summary>Where is the data?</summary><div class="afh-faq-a"><p>All of it is in the product schema: tickets, comments, attachments (as BLOBs), captures, notifications and audit. Back it up with the rest of the database, or on its own with <code>expdp ... schemas=AFH</code>.</p></div></details><details class="afh-faq-qa" id="faq-how-much-space-will-it-use"><summary>How much space will it use?</summary><div class="afh-faq-a"><p>The product was sized for a handful of applications and developers with a year of history. Attachments dominate the space used. Attachments and Retention (page 66) shows storage by category, and the attachment limits cap the growth per ticket.</p></div></details><details class="afh-faq-qa" id="faq-does-anything-get-deleted-automatically"><summary>Does anything get deleted automatically?</summary><div class="afh-faq-a"><p>Not unless you choose that. There are three retention policies:</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ARCHIVE_CLOSED</code></td>
+<td>Marks tickets archived <code>ARCHIVE_AFTER_DAYS</code> (90) after closure. Nothing is deleted</td>
+</tr>
+<tr>
+<td><code>PURGE_ATTACHMENTS</code></td>
+<td>Removes file contents from archived tickets older than <code>DEFAULT_RETENTION_DAYS</code> (365). The attachment record stays</td>
+</tr>
+<tr>
+<td><code>DELETE_TICKETS</code></td>
+<td>Permanently deletes archived tickets older than <code>DEFAULT_RETENTION_DAYS</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>AFH_JOB_RETENTION</code> only <em>previews</em> (counts and bytes written to the run history) until you set <code>RETENTION_JOB_ARMED = Y</code>. An admin running a policy by hand on page 66 must type the confirmation word (<code>ARCHIVE</code> or <code>DELETE</code>). Before each deletion, an audit row is written that survives it and names the ticket, the admin or job, and the time.</p></div></details><details class="afh-faq-qa" id="faq-can-a-user-delete-a-ticket"><summary>Can a user delete a ticket?</summary><div class="afh-faq-a"><p>No. Users can't delete tickets or history. An attachment can be removed only by its uploader within the edit window, or by a developer or admin, and the removal keeps the record and audits it.</p></div></details></section>
+<section class="afh-faq-sec" id="faq-s9"><h2><span class="afh-faq-num">09</span>Operations and troubleshooting<span class="afh-faq-count">8</span></h2><details class="afh-faq-qa" id="faq-which-scheduler-jobs-are-there-and-which-do-we-enable"><summary>Which scheduler jobs are there, and which do we enable?</summary><div class="afh-faq-a"><p>The installer creates all six <strong>disabled</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Schedule</th>
+<th>Enable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AFH_JOB_HANDOFF_PURGE</code></td>
+<td>Hourly</td>
+<td>Always. Removes expired launch handoffs</td>
+</tr>
+<tr>
+<td><code>AFH_JOB_AUTO_CLOSE</code></td>
+<td>Daily 01:00</td>
+<td>Always. Closes Resolved tickets after <code>AUTO_CLOSE_DAYS</code></td>
+</tr>
+<tr>
+<td><code>AFH_JOB_MAIL_WORKER</code></td>
+<td>Every 2 minutes</td>
+<td>When mail is on</td>
+</tr>
+<tr>
+<td><code>AFH_JOB_DAILY_DIGEST</code></td>
+<td>Daily 06:00</td>
+<td>When mail is on</td>
+</tr>
+<tr>
+<td><code>AFH_JOB_WEEKLY_DIGEST</code></td>
+<td>Monday 06:00</td>
+<td>When mail is on</td>
+</tr>
+<tr>
+<td><code>AFH_JOB_RETENTION</code></td>
+<td>Daily 02:00</td>
+<td>Once a retention policy is agreed. It previews until armed</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  DBMS_SCHEDULER.<span class="kw">enable</span>(<span class="st">&#39;AFH_JOB_HANDOFF_PURGE&#39;</span>);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  DBMS_SCHEDULER.<span class="kw">enable</span>(<span class="st">&#39;AFH_JOB_AUTO_CLOSE&#39;</span>);</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">/</span></span></code></pre></div>
+<p>Page 60 lists the jobs and their state. Page 67 links to job management.</p></div></details><details class="afh-faq-qa" id="faq-where-do-i-look-first-when-something-is-wrong"><summary>Where do I look first when something is wrong?</summary><div class="afh-faq-a"><p><strong>Integration Health</strong> (page 67). It shows, per application, recent launches and captures, refused launches with their reason, mail failures with a Retry action, scheduler status and the mail configuration. Behind it:</p>
+<table>
+<thead>
+<tr>
+<th>Table or view</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AFH_INTEGRATION_EVENTS</code></td>
+<td>Launches, captures and mail outcomes, with a safe reason code</td>
+</tr>
+<tr>
+<td><code>AFH_AUDIT_EVENTS</code></td>
+<td>Who changed what and when</td>
+</tr>
+<tr>
+<td><code>AFH_V_MAIL_FAILURES</code></td>
+<td>Mail that failed permanently</td>
+</tr>
+<tr>
+<td><code>APEX_MAIL_QUEUE</code>, <code>APEX_MAIL_LOG</code></td>
+<td>APEX's own view of mail delivery</td>
+</tr>
+<tr>
+<td><code>USER_SCHEDULER_JOB_RUN_DETAILS</code></td>
+<td>Job runs and errors</td>
+</tr>
+</tbody>
+</table></div></details><details class="afh-faq-qa" id="faq-what-do-the-error-codes-mean"><summary>What do the error codes mean?</summary><div class="afh-faq-a"><p>Users see a short message with a code. Stack traces and SQL never reach them.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>Usual cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AFH-AUTH-001</code></td>
+<td>No trusted identity</td>
+<td>The Hub's authentication isn't attached, or the session cookie name differs from the host's</td>
+</tr>
+<tr>
+<td><code>AFH-AUTH-002</code></td>
+<td>Permission denied</td>
+<td>Missing role. After a grant, sign out and in again</td>
+</tr>
+<tr>
+<td><code>AFH-CTX-001</code></td>
+<td>Launch invalid</td>
+<td>Expired, replayed, wrong session, unregistered application or environment, URL pattern. The reason is on page 67</td>
+</tr>
+<tr>
+<td><code>AFH-CTX-002</code></td>
+<td>Partial context</td>
+<td>Some of the capture failed. The ticket is still filed</td>
+</tr>
+<tr>
+<td><code>AFH-CTX-003</code></td>
+<td>Unsupported contract</td>
+<td>The host adapter is older than <code>MIN_ADAPTER_VERSION</code>, or the contract version differs</td>
+</tr>
+<tr>
+<td><code>AFH-UPL-001</code></td>
+<td>File type refused</td>
+<td>Extension not in <code>ATTACH_ALLOWED_EXT</code>, or a blocked type</td>
+</tr>
+<tr>
+<td><code>AFH-UPL-002</code></td>
+<td>Too large</td>
+<td>Over the per-file or per-ticket limit</td>
+</tr>
+<tr>
+<td><code>AFH-WF-001</code></td>
+<td>Transition refused</td>
+<td>A required fact is missing (see section 6), or the role is too low</td>
+</tr>
+<tr>
+<td><code>AFH-LOCK-001</code></td>
+<td>Changed by someone else</td>
+<td>Reload the ticket and try again</td>
+</tr>
+<tr>
+<td><code>AFH-VAL-001</code></td>
+<td>Input validation</td>
+<td>The message says which field</td>
+</tr>
+<tr>
+<td><code>AFH-MAIL-001</code></td>
+<td>Mail delivery failed</td>
+<td>See section 7</td>
+</tr>
+<tr>
+<td><code>AFH-SRCH-001</code></td>
+<td>Search unavailable</td>
+<td>Recorded on Integration Health. Duplicate suggestions return nothing rather than fail</td>
+</tr>
+<tr>
+<td><code>AFH-SYS-002</code></td>
+<td>Append-only violation</td>
+<td>Something tried to change audit history</td>
+</tr>
+<tr>
+<td><code>AFH-INS-005</code></td>
+<td>Installer refused</td>
+<td>The schema holds a different product version. Use the upgrade scripts</td>
+</tr>
+</tbody>
+</table></div></details><details class="afh-faq-qa" id="faq-users-get-session-state-protection-violation-from-a-mail-lin"><summary>Users get "Session state protection violation" from a mail link</summary><div class="afh-faq-a"><p>The mail was sent by a release before 1.0.58, which linked straight to page 10. Install 1.0.58 or later. New mail links go through page 11. Links in mail that was already sent still point at page 10, so open the ticket number from All Feedback instead.</p></div></details><details class="afh-faq-qa" id="faq-digest-mail-never-arrives"><summary>Digest mail never arrives</summary><div class="afh-faq-a"><p>In bundles downloaded before 2026-11-09, the two digest jobs had a broken action and failed on every run (<code>PLS-00201: identifier 'DAILY' must be declared</code> in <code>USER_SCHEDULER_JOB_RUN_DETAILS</code>). Immediate mail was not affected. Re-run <code>install.sql</code> from a current bundle: it corrects the action on the existing jobs and leaves their schedule and enabled state alone. Digest items queued in the meantime go out on the next run.</p></div></details><details class="afh-faq-qa" id="faq-mail-shows-characters"><summary>Mail shows <code>&#xBF;</code> characters</summary><div class="afh-faq-a"><p>The templates came from a release before 1.0.58, or an admin edited a template and typed a non-ASCII character. Re-run the 1.0.58-or-later database install to refresh the shipped templates, and remove dashes and curly quotes from any edited ones (section 7).</p></div></details><details class="afh-faq-qa" id="faq-the-overlay-shows-the-hub-s-own-sign-in-page"><summary>The overlay shows the Hub's own sign-in page</summary><div class="afh-faq-a"><p>The Hub isn't accepting the host's session. Check that the Hub's current authentication scheme uses the host's session cookie name. This happens after every application import until the scheme is re-attached (section 2).</p></div></details><details class="afh-faq-qa" id="faq-a-health-check-i-can-script"><summary>A health check I can script</summary><div class="afh-faq-a"><div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- 1. No invalid product objects (expect 0)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">FROM</span> user_objects</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> <span class="kw">WHERE</span> status <span class="op">=</span> <span class="st">&#39;INVALID&#39;</span> <span class="kw">AND</span> object_name <span class="kw">NOT</span> <span class="kw">LIKE</span> <span class="st">&#39;AFH\_TEST\_%&#39;</span> <span class="kw">ESCAPE</span> <span class="st">&#39;\&#39;</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- 2. Jobs enabled and their last run</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> job_name, enabled, state, last_start_date, failure_count</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> user_scheduler_jobs <span class="kw">ORDER</span> <span class="kw">BY</span> job_name;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- 3. Mail waiting or failed in the Hub</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> channel_code, state_code, <span class="fu">COUNT</span>(<span class="op">*</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> afh_notifications <span class="kw">GROUP</span> <span class="kw">BY</span> channel_code, state_code;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- 4. Refused launches in the last 7 days, by reason</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> safe_detail, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">FROM</span> afh_integration_events</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a> <span class="kw">WHERE</span> result_code <span class="op">=</span> <span class="st">&#39;FAILED&#39;</span> <span class="kw">AND</span> event_at <span class="op">&gt;</span> <span class="fu">SYSTIMESTAMP</span> <span class="op">-</span> <span class="dt">INTERVAL</span> <span class="st">&#39;7&#39;</span> <span class="dt">DAY</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a> <span class="kw">GROUP</span> <span class="kw">BY</span> safe_detail;</span></code></pre></div></div></details></section>
+<section class="afh-faq-sec" id="faq-s10"><h2><span class="afh-faq-num">10</span>Branding and customization<span class="afh-faq-count">4</span></h2><details class="afh-faq-qa" id="faq-can-we-put-our-name-and-colors-on-it"><summary>Can we put our name and colors on it?</summary><div class="afh-faq-a"><p>Yes, without touching the theme. <code>PRODUCT_NAME</code>, <code>BRAND_LOGO_URL</code>, <code>BRAND_PRIMARY_COLOR</code> and <code>BRAND_ACCENT_COLOR</code> on page 60 drive the header, page titles, colors and mail subjects.</p></div></details><details class="afh-faq-qa" id="faq-what-else-can-admins-change-without-a-developer"><summary>What else can admins change without a developer?</summary><div class="afh-faq-a"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Feedback types, their fields, categories, severity, priority and impact values</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Workflow status names and permitted transitions</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Routing rules and application ownership</td>
+<td>62</td>
+</tr>
+<tr>
+<td>Mail templates</td>
+<td>65</td>
+</tr>
+<tr>
+<td>Attachment types and limits, retention periods, archiving</td>
+<td>66</td>
+</tr>
+<tr>
+<td>All other settings in <code>AFH_INSTALL_CONFIG</code></td>
+<td>60</td>
+</tr>
+</tbody>
+</table>
+<p>The installer and upgrades never overwrite these changes.</p></div></details><details class="afh-faq-qa" id="faq-is-there-an-ai-recommends-panel"><summary>Is there an "AI Recommends" panel?</summary><div class="afh-faq-a"><p>A preview of one exists behind the build option <code>AI_PREVIEW</code>, which ships set to <em>Exclude</em>. Leave it excluded. It is not part of this release and calls no AI service.</p></div></details><details class="afh-faq-qa" id="faq-where-do-i-report-a-problem-with-the-product-itself"><summary>Where do I report a problem with the product itself?</summary><div class="afh-faq-a"><p>Through whoever supplied your installation. Releases, release notes and checksums are at <a href="https://github.com/praveensehgal/apex-feedback-hub/releases">https://github.com/praveensehgal/apex-feedback-hub/releases</a>.</p></div></details></section>

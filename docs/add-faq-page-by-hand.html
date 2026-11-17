@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan P68 · FAQ for IT</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:            #f4f5f8;
+    --bg-grid:       rgba(30, 64, 175, 0.045);
+    --surface:       #ffffff;
+    --surface-2:     #f8fafc;
+    --surface-3:     #eef2f7;
+    --border:        rgba(15, 23, 42, 0.12);
+    --border-strong: rgba(15, 23, 42, 0.22);
+    --text:          #0b1530;
+    --text-dim:      #475569;
+    --text-faint:    #64748b;
+
+    --blue:       #1e40af;
+    --blue-2:     #2563eb;
+    --blue-dim:   rgba(30, 64, 175, 0.10);
+    --blue-edge:  rgba(30, 64, 175, 0.32);
+
+    --gold:       #b45309;
+    --gold-2:     #d97706;
+    --gold-dim:   rgba(180, 83, 9, 0.12);
+    --gold-edge:  rgba(180, 83, 9, 0.40);
+
+    --sage:       #15803d;
+    --sage-2:     #16a34a;
+    --sage-dim:   rgba(21, 128, 61, 0.12);
+    --sage-edge:  rgba(21, 128, 61, 0.40);
+
+    --rose:       #9f1239;
+    --rose-2:     #be123c;
+    --rose-dim:   rgba(159, 18, 57, 0.10);
+    --rose-edge:  rgba(159, 18, 57, 0.40);
+
+    --font-body:  'DM Sans', system-ui, sans-serif;
+    --font-mono:  'Fira Code', 'SF Mono', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:            #0b1224;
+      --bg-grid:       rgba(96, 165, 250, 0.06);
+      --surface:       #111c36;
+      --surface-2:     #16223e;
+      --surface-3:     #1c2a4a;
+      --border:        rgba(148, 163, 184, 0.18);
+      --border-strong: rgba(148, 163, 184, 0.32);
+      --text:          #e5ecf8;
+      --text-dim:      #94a3b8;
+      --text-faint:    #64748b;
+
+      --blue:       #60a5fa;
+      --blue-2:     #93c5fd;
+      --blue-dim:   rgba(96, 165, 250, 0.16);
+      --blue-edge:  rgba(96, 165, 250, 0.42);
+
+      --gold:       #fbbf24;
+      --gold-2:     #fcd34d;
+      --gold-dim:   rgba(251, 191, 36, 0.16);
+      --gold-edge:  rgba(251, 191, 36, 0.42);
+
+      --sage:       #4ade80;
+      --sage-2:     #86efac;
+      --sage-dim:   rgba(74, 222, 128, 0.14);
+      --sage-edge:  rgba(74, 222, 128, 0.40);
+
+      --rose:       #fb7185;
+      --rose-2:     #fda4af;
+      --rose-dim:   rgba(251, 113, 133, 0.14);
+      --rose-edge:  rgba(251, 113, 133, 0.42);
+    }
+  }
+
+  * { box-sizing: border-box; min-width: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1.75rem 6rem; }
+
+  .hero {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 2rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px dashed var(--border);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .hero-label::before {
+    content: '';
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-dim);
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1.15;
+    font-weight: 700;
+    margin: 0.75rem 0 0.35rem;
+    letter-spacing: -0.015em;
+  }
+  .hero .sub { color: var(--text-dim); margin: 0; }
+
+  .toc {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .toc-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.5rem;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.3rem 1.2rem;
+    list-style: none;
+    padding: 0; margin: 0;
+  }
+  .toc-grid a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.28rem 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-bottom: 1px dashed transparent;
+  }
+  .toc-grid a:hover { color: var(--blue); border-bottom-color: var(--blue-edge); }
+  .toc-grid .num {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--blue);
+    font-weight: 600;
+    width: 2.1rem;
+    flex-shrink: 0;
+  }
+
+  section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
+  .issue-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.5rem;
+  }
+  .issue-label::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-dim);
+  }
+  section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    font-size: 0.82rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    margin: 1.5rem 0 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  section h3::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--text-dim);
+  }
+
+  ol.steps {
+    padding-left: 1.4rem;
+    counter-reset: step;
+    list-style: none;
+  }
+  ol.steps li {
+    counter-increment: step;
+    margin: 0.55rem 0;
+    padding-left: 0.3rem;
+    position: relative;
+  }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: -1.55rem;
+    top: 0.05rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--blue);
+    color: #fff;
+    width: 1.3rem; height: 1.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-radius: 2px;
+  }
+
+  .cp {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--blue-dim);
+    color: var(--blue);
+    padding: 0.13rem 0.5rem;
+    border: 1px solid var(--blue-edge);
+    border-radius: 2px;
+    display: inline-block;
+    line-height: 1.35;
+    transition: all 0.12s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .cp:hover {
+    background: var(--blue);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px var(--blue-edge);
+  }
+  .cp:hover::after { content: ' ⧉'; opacity: 0.85; }
+  .cp.copied {
+    background: var(--sage);
+    border-color: var(--sage-edge);
+    color: #fff;
+    transform: none;
+  }
+  .cp.copied::after { content: ' ✓'; }
+  .cp.lbl { background: var(--surface-3); color: var(--text); border-color: var(--border-strong); white-space: normal; font-family: var(--font-body); font-size: 0.92em; }
+  .cp.lbl:hover { background: var(--text); color: var(--bg); }
+  .cp.lbl.copied { background: var(--sage); color: #fff; border-color: var(--sage-edge); }
+
+  .block {
+    margin: 0.6rem 0 1rem;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .block-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.85rem;
+    background: var(--surface-3);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+  .block-name {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .block-name::before {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--blue);
+    border-radius: 50%;
+  }
+  .cp-btn {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: all 0.12s;
+  }
+  .cp-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .cp-btn.copied { background: var(--sage); color: #fff; border-color: var(--sage); }
+  .block pre {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--surface);
+    white-space: pre;
+    word-break: normal;
+    tab-size: 2;
+  }
+
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(180px, max-content) 1fr;
+    gap: 0.5rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.05rem;
+    margin: 0.6rem 0 1rem;
+    border-radius: 2px;
+    font-size: 0.88rem;
+  }
+  .kv dt {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    align-self: center;
+  }
+  .kv dd { margin: 0; align-self: center; }
+
+  hr.div {
+    border: none;
+    height: 1px;
+    background: var(--border-strong);
+    margin: 2rem 0;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 0.6rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+    z-index: 999;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+</head>
+<body>
+
+<div id="toast">copied to clipboard</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-label">APEX Feedback Hub · Add-on to an installed Hub · Plan P68</div>
+    <h1>Plan P68 · FAQ for IT</h1>
+    <p class="sub">Adds the FAQ page to a Hub installed before Release 1.0.60, without re-importing the application. If Administration already shows a <b>FAQ for IT</b> card, it is installed; stop here. Sequenced: the file, then the page, then the Administration card, then the menu entry. Click any value to copy.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-label">Steps</div>
+    <ol class="toc-grid">
+      <li><a href="#s1"><span class="num">#1</span>Upload the FAQ file</a></li>
+      <li><a href="#s2"><span class="num">#2</span>Create page 68</a></li>
+      <li><a href="#s3"><span class="num">#3</span>Add the FAQ card to Administration</a></li>
+      <li><a href="#s4"><span class="num">#4</span>Add the menu entry</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <div class="issue-label">#1</div>
+    <h2>Upload the FAQ as a static application file</h2>
+
+    <h3>Steps</h3>
+    <ol class="steps">
+      <li>Take <span class="cp" onclick="cp(this)">docs/afh_faq.html</span> from the release bundle this plan came in (<span class="cp" onclick="cp(this)">v0.1.1-r1.0.62</span> or later, <span class="cp" onclick="cp(this)">https://github.com/praveensehgal/apex-feedback-hub/releases</span>). It is plain ASCII.</li>
+      <li>In the Hub application: Shared Components &rarr; Static Application Files &rarr; Create File.</li>
+      <li>Upload the file. Keep the file name exactly <span class="cp" onclick="cp(this)">afh_faq.html</span> and no directory: the page looks the file up by that name, and shows <i>"The FAQ file afh_faq.html is missing"</i> if it is renamed.</li>
+      <li>MIME type: <span class="cp" onclick="cp(this)">text/html</span>. Character set: <span class="cp" onclick="cp(this)">UTF-8</span>. Create.</li>
+    </ol>
+  </section>
+
+  <section id="s2">
+    <div class="issue-label">#2</div>
+    <h2>Create page 68, FAQ for IT</h2>
+
+    <h3>Steps</h3>
+    <ol class="steps">
+      <li>Create Page &rarr; Blank Page. Page Number <span class="cp" onclick="cp(this)">68</span>, Name <span class="cp lbl" onclick="cp(this)">FAQ for IT</span>, Page Mode Normal.</li>
+      <li>Breadcrumb: do not use. Navigation: turn <b>Use Navigation</b> off (the Hub builds its menu from the database; step #4 adds the entry). Create Page.</li>
+      <li>If the wizard created a Breadcrumb region, delete it.</li>
+      <li>Page attributes, set as in the table below.</li>
+      <li>Page &rarr; JavaScript &rarr; Execute when Page Loads: paste <b>Page load JavaScript</b>.</li>
+      <li>Page &rarr; CSS &rarr; Inline: paste <b>Page inline CSS</b>.</li>
+      <li>Create one region: Title <span class="cp lbl" onclick="cp(this)">FAQ for IT</span>, Type <b>Dynamic Content</b>, Language PL/SQL, PL/SQL Function Body returning a CLOB: paste <b>Region source</b>.</li>
+      <li>Region &rarr; Appearance &rarr; Template <span class="cp lbl" onclick="cp(this)">Blank with Attributes</span>.</li>
+      <li>Region &rarr; Advanced &rarr; Static ID <span class="cp" onclick="cp(this)">afh-faq</span>. Without it the search, Expand all and section links do nothing (the JavaScript finds the region by this ID).</li>
+      <li>Save.</li>
+    </ol>
+
+    <h3>Page attributes</h3>
+    <dl class="kv">
+      <dt>Alias</dt><dd><span class="cp" onclick="cp(this)">FAQ-FOR-IT</span></dd>
+      <dt>Title</dt><dd><span class="cp lbl" onclick="cp(this)">FAQ for IT</span></dd>
+      <dt>Page Template</dt><dd><span class="cp lbl" onclick="cp(this)">Standard</span></dd>
+      <dt>Authorization Scheme</dt><dd><span class="cp" onclick="cp(this)">AFH_IS_APP_OWNER_OR_ADMIN</span></dd>
+      <dt>Page Access Protection</dt><dd><span class="cp lbl" onclick="cp(this)">Arguments Must Have Checksum</span></dd>
+      <dt>Form Auto Complete</dt><dd><span class="cp lbl" onclick="cp(this)">Off</span></dd>
+    </dl>
+
+    <h3>Page load JavaScript</h3>
+    <div class="block">
+      <div class="block-bar"><span class="block-name">JavaScript · Execute when Page Loads</span><button class="cp-btn" onclick="cpBlock(this)">copy</button></div>
+<pre><code>(function () {
+  var root = document.getElementById(&#x27;afh-faq&#x27;);
+  if (!root) { return; }
+  var input = root.querySelector(&#x27;.afh-faq-input&#x27;);
+  var result = root.querySelector(&#x27;.afh-faq-result&#x27;);
+  var empty = root.querySelector(&#x27;p.afh-faq-empty&#x27;);
+  var toggle = root.querySelector(&#x27;.afh-faq-toggle&#x27;);
+  var qas = Array.prototype.slice.call(root.querySelectorAll(&#x27;.afh-faq-qa&#x27;));
+  var secs = Array.prototype.slice.call(root.querySelectorAll(&#x27;.afh-faq-sec&#x27;));
+  if (!input || !qas.length) { return; }
+  qas.forEach(function (d) { d.afhText = d.textContent.toLowerCase(); d.afhOpen = false; });
+
+  function clearMarks(el) {
+    el.querySelectorAll(&#x27;mark&#x27;).forEach(function (m) { m.replaceWith(document.createTextNode(m.textContent)); });
+    el.normalize();
+  }
+  function markIn(el, term) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    var n = walker.nextNode();
+    while (n) { if (n.nodeValue.toLowerCase().indexOf(term) !== -1) { nodes.push(n); } n = walker.nextNode(); }
+    nodes.forEach(function (node) {
+      var s = node.nodeValue;
+      var lower = s.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var i = 0;
+      var j = lower.indexOf(term, i);
+      while (j !== -1) {
+        frag.appendChild(document.createTextNode(s.slice(i, j)));
+        var m = document.createElement(&#x27;mark&#x27;);
+        m.textContent = s.slice(j, j + term.length);
+        frag.appendChild(m);
+        i = j + term.length;
+        j = lower.indexOf(term, i);
+      }
+      frag.appendChild(document.createTextNode(s.slice(i)));
+      node.replaceWith(frag);
+    });
+  }
+  function run() {
+    var term = input.value.trim().toLowerCase();
+    var shown = 0;
+    qas.forEach(function (d) {
+      clearMarks(d);
+      var hit = !term || d.afhText.indexOf(term) !== -1;
+      d.classList.toggle(&#x27;is-hidden&#x27;, !hit);
+      if (term &amp;&amp; hit) { d.open = true; markIn(d, term); shown += 1; } else if (!term) { d.open = d.afhOpen; }
+    });
+    secs.forEach(function (s) {
+      var any = !!s.querySelector(&#x27;.afh-faq-qa:not(.is-hidden)&#x27;);
+      s.classList.toggle(&#x27;is-hidden&#x27;, !any);
+      var link = root.querySelector(&#x27;.afh-faq-toc a[href=&quot;#&#x27; + s.id + &#x27;&quot;]&#x27;);
+      if (link) { link.classList.toggle(&#x27;is-empty&#x27;, !any); }
+    });
+    empty.hidden = !(term &amp;&amp; shown === 0);
+    result.textContent = term ? shown + &#x27; of &#x27; + qas.length + &#x27; questions match&#x27; : &#x27;&#x27;;
+  }
+
+  var timer;
+  input.addEventListener(&#x27;input&#x27;, function () { clearTimeout(timer); timer = setTimeout(run, 120); });
+  qas.forEach(function (d) {
+    d.addEventListener(&#x27;toggle&#x27;, function () { if (!input.value.trim()) { d.afhOpen = d.open; } });
+  });
+  toggle.addEventListener(&#x27;click&#x27;, function () {
+    var open = toggle.textContent === &#x27;Expand all&#x27;;
+    qas.forEach(function (d) { if (!d.classList.contains(&#x27;is-hidden&#x27;)) { d.open = open; d.afhOpen = open; } });
+    toggle.textContent = open ? &#x27;Collapse all&#x27; : &#x27;Expand all&#x27;;
+  });
+  document.addEventListener(&#x27;keydown&#x27;, function (e) {
+    var t = e.target;
+    var typing = t &amp;&amp; (t.tagName === &#x27;INPUT&#x27; || t.tagName === &#x27;TEXTAREA&#x27; || t.isContentEditable);
+    if (e.key === &#x27;/&#x27; &amp;&amp; !typing) { e.preventDefault(); input.focus(); }
+    if (e.key === &#x27;Escape&#x27; &amp;&amp; t === input) { input.value = &#x27;&#x27;; run(); input.blur(); }
+  });
+  function openHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id &amp;&amp; document.getElementById(id);
+    if (el &amp;&amp; el.classList.contains(&#x27;afh-faq-qa&#x27;)) { el.open = true; el.afhOpen = true; el.scrollIntoView({ block: &#x27;start&#x27; }); }
+  }
+  window.addEventListener(&#x27;hashchange&#x27;, openHash);
+  openHash();
+})();</code></pre>
+    </div>
+
+    <h3>Page inline CSS</h3>
+    <div class="block">
+      <div class="block-bar"><span class="block-name">CSS · Inline</span><button class="cp-btn" onclick="cpBlock(this)">copy</button></div>
+<pre><code>#afh-faq { max-width: 1040px; }
+.afh-faq-bar { position: sticky; top: 0; z-index: 5; display: flex; gap: 10px; align-items: center; padding: 10px 0; background: var(--afh-paper-2); }
+.afh-faq-search { flex: 1; min-width: 0; position: relative; margin: 0; }
+.afh-faq-search .fa { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--afh-ink-muted); }
+.afh-faq-input { width: 100%; font: inherit; font-size: 1rem; color: var(--afh-ink); background: var(--afh-paper); border: 1px solid var(--afh-border); border-radius: var(--afh-radius-sm); padding: 9px 12px 9px 36px; }
+.afh-faq-input:focus { outline: 2px solid var(--afh-teal); outline-offset: 1px; }
+.afh-faq-result { min-height: 1.2em; margin: 0 0 8px; font-family: var(--afh-mono); font-size: .8rem; color: var(--afh-ink-muted); }
+.afh-faq-empty { padding: 24px; text-align: center; color: var(--afh-ink-muted); border: 1px dashed var(--afh-border); border-radius: var(--afh-radius-md); }
+.afh-faq-intro { background: var(--afh-paper); border: 1px solid var(--afh-border); border-left: 4px solid var(--afh-teal); border-radius: var(--afh-radius-md); padding: 16px 20px; margin-bottom: 14px; }
+.afh-faq-intro p { margin: 0 0 8px; max-width: 78ch; }
+.afh-faq-total { font-family: var(--afh-mono); font-size: .8rem; color: var(--afh-ink-muted); margin: 6px 0 0 !important; }
+.afh-faq-toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
+.afh-faq-toc a { font-size: .85rem; padding: 4px 10px; border: 1px solid var(--afh-border); border-radius: 999px; background: var(--afh-paper); color: var(--afh-ink-soft); text-decoration: none; }
+.afh-faq-toc a:hover { border-color: var(--afh-teal); color: var(--afh-teal); }
+.afh-faq-toc a.is-empty { opacity: .4; }
+.afh-faq-num { font-family: var(--afh-mono); font-size: .75rem; color: var(--afh-gold); margin-right: 8px; }
+.afh-faq-sec { margin: 0 0 28px; scroll-margin-top: 70px; }
+.afh-faq-sec h2 { display: flex; align-items: baseline; gap: 4px; font-family: var(--afh-display); font-size: 1.45rem; font-weight: 600; margin: 0 0 2px; padding-bottom: 6px; border-bottom: 2px solid var(--afh-ink); }
+.afh-faq-count { margin-left: auto; font-family: var(--afh-mono); font-size: .75rem; font-weight: 400; color: var(--afh-ink-muted); }
+.afh-faq-qa { border-bottom: 1px solid var(--afh-border); scroll-margin-top: 70px; }
+.afh-faq-qa &gt; summary { list-style: none; cursor: pointer; display: flex; gap: 10px; padding: 11px 4px; font-weight: 600; line-height: 1.4; }
+.afh-faq-qa &gt; summary::-webkit-details-marker { display: none; }
+.afh-faq-qa &gt; summary::before { content: &quot;+&quot;; flex: 0 0 14px; font-family: var(--afh-mono); color: var(--afh-gold); }
+.afh-faq-qa[open] &gt; summary::before { content: &quot;\2212&quot;; }
+.afh-faq-qa &gt; summary:hover { color: var(--afh-teal); }
+.afh-faq-a { padding: 0 4px 16px 28px; max-width: 82ch; }
+.afh-faq-a p { margin: 0 0 10px; }
+.afh-faq-a ul, .afh-faq-a ol { margin: 0 0 10px; padding-left: 1.3em; }
+.afh-faq-a li { margin-bottom: 4px; }
+.afh-faq-a code { font-family: var(--afh-mono); font-size: .86em; background: var(--afh-paper-3); padding: 1px 4px; border-radius: var(--afh-radius-xs); }
+.afh-faq-a pre { font-family: var(--afh-mono); font-size: .82rem; line-height: 1.5; background: var(--afh-paper-3); border: 1px solid var(--afh-border); border-radius: var(--afh-radius-sm); padding: 12px 14px; white-space: pre-wrap; word-break: break
+-word; overflow-x: auto; margin: 0 0 12px; }
+.afh-faq-a pre code { background: none; padding: 0; }
+.afh-faq-a table { display: block; overflow-x: auto; border-collapse: collapse; margin: 0 0 12px; font-size: .9rem; background: var(--afh-paper); border: 1px solid var(--afh-border); border-radius: var(--afh-radius-sm); }
+.afh-faq-a th { text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--afh-ink-muted); background: var(--afh-paper-2); padding: 7px 10px; border-bottom: 1px solid var(--afh-border); }
+.afh-faq-a td { padding: 7px 10px; border-bottom: 1px solid var(--afh-border); vertical-align: top; }
+.afh-faq-a tr:last-child td { border-bottom: 0; }
+.afh-faq-a td code { white-space: nowrap; }
+#afh-faq mark { background: var(--afh-gold-soft); color: inherit; padding: 0 1px; border-radius: 2px; }
+#afh-faq .is-hidden { display: none; }
+@media (max-width: 640px) { .afh-faq-bar { flex-wrap: wrap; } .afh-faq-a { padding-left: 4px; } }
+@media print { .afh-faq-bar, .afh-faq-result, .afh-faq-toc { display: none; } }</code></pre>
+    </div>
+
+    <h3>Region source</h3>
+    <div class="block">
+      <div class="block-bar"><span class="block-name">PL/SQL · Function Body returning a CLOB</span><button class="cp-btn" onclick="cpBlock(this)">copy</button></div>
+<pre><code>DECLARE
+  l_file BLOB;
+BEGIN
+  SELECT file_content INTO l_file
+    FROM apex_application_static_files
+   WHERE application_id = :APP_ID
+     AND file_name = &#x27;afh_faq.html&#x27;;
+  RETURN &#x27;&lt;div class=&quot;afh-faq-bar&quot;&gt;&#x27;
+      || &#x27;&lt;label class=&quot;afh-faq-search&quot;&gt;&lt;span class=&quot;fa fa-search&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&#x27;
+      || &#x27;&lt;input type=&quot;search&quot; class=&quot;afh-faq-input&quot; placeholder=&quot;Search questions, page numbers, error codes, job names&quot;&#x27;
+      || &#x27; aria-label=&quot;Search the FAQ&quot; autocomplete=&quot;off&quot;&gt;&lt;/label&gt;&#x27;
+      || &#x27;&lt;button type=&quot;button&quot; class=&quot;t-Button afh-faq-toggle&quot;&gt;Expand all&lt;/button&gt;&lt;/div&gt;&#x27;
+      || &#x27;&lt;p class=&quot;afh-faq-result&quot; aria-live=&quot;polite&quot;&gt;&lt;/p&gt;&#x27;
+      || &#x27;&lt;p class=&quot;afh-faq-empty&quot; hidden&gt;No question matches that search.&lt;/p&gt;&#x27;
+      || apex_util.blob_to_clob(l_file);
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RETURN &#x27;&lt;p class=&quot;afh-faq-empty&quot;&gt;The FAQ file afh_faq.html is missing from this application. &#x27;
+        || &#x27;Re-import the application from the release bundle.&lt;/p&gt;&#x27;;
+END;</code></pre>
+    </div>
+
+  </section>
+
+  <section id="s3">
+    <div class="issue-label">#3</div>
+    <h2>Add the FAQ card to the Administration page</h2>
+
+    <h3>Steps</h3>
+    <ol class="steps">
+      <li>Shared Components &rarr; Lists &rarr; <span class="cp lbl" onclick="cp(this)">Administration Cards</span> &rarr; Create List Entry.</li>
+      <li>Set the entry as in the table below. Create.</li>
+    </ol>
+
+    <h3>List entry</h3>
+    <dl class="kv">
+      <dt>Sequence</dt><dd><span class="cp" onclick="cp(this)">80</span></dd>
+      <dt>Image/Class</dt><dd><span class="cp" onclick="cp(this)">fa-question-circle</span></dd>
+      <dt>List Entry Label</dt><dd><span class="cp lbl" onclick="cp(this)">FAQ for IT</span></dd>
+      <dt>Target</dt><dd>Page in this application, Page <span class="cp" onclick="cp(this)">68</span></dd>
+      <dt>Authorization Scheme</dt><dd><span class="cp" onclick="cp(this)">AFH_IS_APP_OWNER_OR_ADMIN</span></dd>
+    </dl>
+
+  </section>
+
+  <section id="s4">
+    <div class="issue-label">#4</div>
+    <h2>Add FAQ for IT under Administration in the navigation menu</h2>
+
+    <h3>Steps</h3>
+    <ol class="steps">
+      <li>SQL Workshop &rarr; SQL Commands in the Hub's workspace, parsing schema <span class="cp" onclick="cp(this)">AFH</span>.</li>
+      <li>Run <b>Menu entry</b> below. Expect <i>1 row merged</i>. Running it again is harmless.</li>
+      <li>Sign out and back in as an application owner or admin. Administration &rarr; FAQ for IT opens the page.</li>
+    </ol>
+
+    <h3>Menu entry</h3>
+    <div class="block">
+      <div class="block-bar"><span class="block-name">SQL · run as AFH</span><button class="cp-btn" onclick="cpBlock(this)">copy</button></div>
+<pre><code>-- Adds &quot;FAQ for IT&quot; under Administration in the navigation menu. Safe to run twice.
+MERGE INTO afh_nav_entries t
+USING (SELECT &#x27;ADMIN_FAQ&#x27; AS entry_code FROM dual) s
+   ON (t.entry_code = s.entry_code)
+ WHEN MATCHED THEN UPDATE
+  SET t.list_code         = &#x27;MENU&#x27;,
+      t.parent_entry_code = &#x27;ADMIN&#x27;,
+      t.label             = &#x27;FAQ for IT&#x27;,
+      t.target_type       = &#x27;PAGE&#x27;,
+      t.page_no           = 68,
+      t.icon_css          = &#x27;fa-question-circle&#x27;,
+      t.display_seq       = 78,
+      t.audience_code     = &#x27;APP_OWNER_OR_ADMIN&#x27;,
+      t.badge_source      = NULL
+ WHEN NOT MATCHED THEN INSERT
+      (list_code, entry_code, parent_entry_code, label, target_type, page_no,
+       icon_css, display_seq, audience_code, badge_source)
+VALUES (&#x27;MENU&#x27;, &#x27;ADMIN_FAQ&#x27;, &#x27;ADMIN&#x27;, &#x27;FAQ for IT&#x27;, &#x27;PAGE&#x27;, 68,
+        &#x27;fa-question-circle&#x27;, 78, &#x27;APP_OWNER_OR_ADMIN&#x27;, NULL);
+
+COMMIT;</code></pre>
+    </div>
+
+  </section>
+
+  <footer>
+    <div>APEX Feedback Hub · Page 68</div>
+    <div>Static file afh_faq.html · List Administration Cards · AFH_NAV_ENTRIES</div>
+    <div>Click any value above to copy</div>
+  </footer>
+
+</div>
+
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg || 'copied to clipboard';
+    t.classList.add('show');
+    clearTimeout(window.__toastT);
+    window.__toastT = setTimeout(() => t.classList.remove('show'), 1400);
+  }
+  function cp(el) {
+    const text = el.dataset.copy || el.textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      el.classList.add('copied');
+      showToast('copied: ' + (text.length > 40 ? text.slice(0, 38) + '…' : text));
+      setTimeout(() => el.classList.remove('copied'), 1200);
+    }).catch(() => showToast('clipboard blocked'));
+  }
+  function cpBlock(btn) {
+    const code = btn.closest('.block').querySelector('pre code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'copied';
+      btn.classList.add('copied');
+      showToast('copied code block (' + code.split('\n').length + ' lines)');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+    }).catch(() => showToast('clipboard blocked'));
+  }
+</script>
+
+</body>
+</html>
