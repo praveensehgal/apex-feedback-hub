@@ -1,7 +1,7 @@
 # APEX Feedback Hub
 
-Version **0.1.1** (application Release 1.0.62), built 2026-11-17T14:21:58Z
-from commit 01ccd4b.
+Version **0.1.1** (application Release 1.0.62), built 2026-11-23T20:27:21Z
+from commit ecce551.
 
 In-application feedback capture and ticket management for Oracle APEX. Users press a Feedback
 button on any integrated APEX page; the Hub opens in an overlay, captures the page context and a
@@ -25,6 +25,7 @@ Start with [docs/INSTALL.md](docs/INSTALL.md). In order:
 5. Wire the host application ([integration/host-adapter/README.md](integration/host-adapter/README.md))
 
 Upgrades and rollback: [docs/UPGRADE-AND-ROLLBACK.md](docs/UPGRADE-AND-ROLLBACK.md).
+Moving an installed Hub from DEV to UAT (or UAT to PROD): [docs/RUNBOOK-DEV-TO-UAT.md](docs/RUNBOOK-DEV-TO-UAT.md), also as PDF.
 How the parts fit together, for IT: [docs/FAQ.md](docs/FAQ.md).
 Verify a download with `shasum -a 256 -c MANIFEST.sha256`.
 
@@ -36,7 +37,8 @@ apex/application/           the Hub application export (split, install.sql at th
 integration/host-adapter/   files the host application installs
 docs/                       INSTALL.md, CONFIGURATION.md, UPGRADE-AND-ROLLBACK.md, FAQ.md,
                             afh_faq.html (the in-app FAQ file, page 68) and
-                            add-faq-page-by-hand.html (adds page 68 to a Hub older than 1.0.60)
+                            add-faq-page-by-hand.html (adds page 68 to a Hub older than 1.0.60),
+                            RUNBOOK-DEV-TO-UAT.md/.pdf (bringing up the next tier)
 licenses/                   third-party browser libraries and their licenses
 MANIFEST.sha256             checksums of every file in the release
 ```
