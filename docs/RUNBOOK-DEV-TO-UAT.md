@@ -7,8 +7,13 @@ It assumes shared session: the Hub and the host application sit in the same APEX
 your host uses signed envelope, steps 1 to 6 still apply and the secret handling is in
 `integration/host-adapter/README.md`.
 
-Run SQL in SQL Workshop or SQLcl connected as `AFH` unless a step says otherwise. Do the steps in
-order. Users should not be let in until step 9 passes.
+Run the SQL in SQL Workshop > SQL Commands inside the APEX builder, with `AFH` as the schema,
+unless a step says otherwise. From SQLcl or any other client the APEX views only list applications
+owned by `AFH`, so the host application seems to be missing, and the ORDS address comes back empty.
+The exception is `install.sql` and `uninstall.sql` (step 8): SQL Workshop cannot run them, so use
+SQLcl or SQL*Plus for those.
+
+Do the steps in order. Users should not be let in until step 9 passes.
 
 ## Fill in first
 
@@ -43,9 +48,24 @@ SELECT (SELECT COUNT(*) FROM afh_tickets) AS tickets,
    ```
 
    Expect one row naming the UAT workspace. If none, a workspace admin adds it under
-   Administration > Manage Workspace > Manage Workspace Schema Assignments.
+   Administration > Manage Workspace > Manage Workspace Schema Assignments. If there are two,
+   make sure you know which workspace the Hub and the host are in (next check). A stray
+   assignment is harmless, but it makes it easy to work in the wrong workspace.
 
-2. The `DBMS_CRYPTO` grant exists. A schema copy does not always bring grants made by SYS.
+2. The Hub exists once, and it sits in the same workspace as the host:
+
+   ```sql
+   SELECT workspace, application_id, application_name, alias, owner
+     FROM apex_applications
+    ORDER BY workspace, application_id;
+   ```
+
+   Expect one application owned by `AFH` (the Hub) and the host, both in the same workspace.
+   If the Hub is there twice, decide which ID is the UAT Hub, write it in the table above and
+   remove the other one. Otherwise testers and mail links end up in different copies. If the
+   Hub and host are in different workspaces, shared session will not work.
+
+3. The `DBMS_CRYPTO` grant exists. A schema copy does not always bring grants made by SYS.
 
    ```sql
    SELECT privilege FROM user_tab_privs WHERE table_name = 'DBMS_CRYPTO';
@@ -59,24 +79,34 @@ SELECT (SELECT COUNT(*) FROM afh_tickets) AS tickets,
    /
    ```
 
-3. No invalid product objects:
+4. No invalid product objects:
 
    ```sql
    SELECT object_type, object_name FROM user_objects
-    WHERE status = 'INVALID' AND object_name NOT LIKE 'AFH\_TEST\_%' ESCAPE '\'
+    WHERE status = 'INVALID'
+      AND NOT (object_type IN ('PACKAGE','PACKAGE BODY')
+               AND object_name LIKE 'AFH\_TEST\_%' ESCAPE '\')
     ORDER BY object_type, object_name;
    ```
 
-   Expect no rows. The `AFH_TEST_*` packages are invalid on purpose and are never run.
+   Expect no rows. If DEV had the test packages (`AFH_TEST_*_PKG`), they came across too. They
+   are invalid on purpose and are never run. `AFH_TEST_RESULTS` and its trigger are part of
+   the product and are not excluded.
 
 ## 2. Sign-in scheme (APEX developer)
 
-The application import puts *Oracle APEX Accounts* back as the current scheme. It has to be
-replaced before anyone uses the Hub.
+Check which scheme is current in the Hub: Shared Components > Authentication Schemes.
+Depending on how the application was exported and imported, it is either the host's scheme
+(carried over from DEV) or *Oracle APEX Accounts*.
+
+- If the current scheme is the same as the UAT host's (same type, same settings), go to item 2
+  and check the cookie.
+- If it is Oracle APEX Accounts, or a scheme that only fits DEV, replace it:
 
 1. In the Hub application, Shared Components > Authentication Schemes > Create > As a copy of an
    existing scheme. Copy the UAT host application's scheme.
-2. Session cookie name: exactly the same as the UAT host's. Secure cookie: on.
+2. Session cookie name: exactly the same as the UAT host's. If the host leaves it empty (the
+   default), leave the Hub's empty too. Secure cookie: on.
 3. Make the new scheme Current. Leave Oracle APEX Accounts in the list as a fallback.
 4. Leave the application process `AFH_AFTER_AUTH` alone.
 5. Test: sign in to the UAT host, then open `f?p=<hub app id>:1:&SESSION.` in the same browser.
@@ -106,7 +136,8 @@ UPDATE afh_install_config SET config_value = 'N'
 COMMIT;
 ```
 
-`BASE_URL` is the bare ORDS root, with no `/r/...` on the end. Mail links are built from it.
+`BASE_URL` is the bare ORDS root, with no `/r/...` on the end. A trailing `/` does no harm; it is
+removed when mail links are built.
 
 Check:
 
@@ -233,9 +264,34 @@ Decide whether UAT keeps DEV's tickets.
 
 - Keep them: nothing to do. Testers will see them in lists and searches.
 - Start clean: don't delete rows by hand. The audit history is append-only and a partial delete
-  leaves it pointing at nothing. Instead run `database/uninstall/uninstall.sql` as `AFH`, then
-  `database/install/install.sql`, then go back to step 3. The application import and step 2 are
-  not affected.
+  leaves it pointing at nothing. Instead, take an export of the schema first if anyone might
+  want DEV's tickets back, then start SQLcl or SQL*Plus in the release's `database/install`
+  folder, connect as `AFH`, and run:
+
+  ```sql
+  DEFINE afh_confirm_uninstall = 'YES'
+  DEFINE afh_keep_data = 'NO'
+  @../uninstall/uninstall.sql
+  @install.sql
+  ```
+
+  The uninstall drops every `AFH_` object in the schema: jobs, packages (test packages
+  included), views, tables and sequences. Its last query should show no rows. Any line starting
+  `FAILED` names an object it could not drop; drop that by hand before installing. The install
+  checks the `DBMS_CRYPTO` grant again and ends with a verify step that should report no invalid
+  objects. The applications, the workspace and step 2 are not touched.
+
+  After a reinstall everything the schema held is back to the shipped defaults. That means all
+  of the settings, the registered applications and environments, routing rules, users, roles and
+  e-mail addresses, and any template edits. Redo, in this order:
+
+  - Step 3 settings, and anything on page 60 that DEV had changed (product name, logo,
+    templates).
+  - Step 4 jobs. The install creates them in their default state.
+  - Step 5 as a fresh install. There is no administrator, so run `bootstrap_admin`.
+  - Step 6 in full. Register the host application itself (Register Application on page 61), then
+    its UAT environment. Add routing rules again if DEV had any.
+  - Steps 7 to 10 as written.
 
 ## 9. Acceptance
 

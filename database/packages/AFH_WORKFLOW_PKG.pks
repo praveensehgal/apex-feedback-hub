@@ -90,6 +90,9 @@ CREATE OR REPLACE PACKAGE afh_workflow_pkg AUTHID DEFINER AS
   -- Transitions the current user may perform now (for buttons / select lists).
   FUNCTION allowed_transitions(p_ticket_id IN NUMBER) RETURN t_transition_tab PIPELINED;
   FUNCTION can_transition(p_ticket_id IN NUMBER, p_to_status_code IN VARCHAR2) RETURN BOOLEAN;
+  -- TRUE when the move exists and the current user may make it, whether or not the facts it
+  -- needs are on the ticket yet. The board uses it to tell "not allowed" from "open the dialog".
+  FUNCTION transition_offered(p_ticket_id IN NUMBER, p_to_status_code IN VARCHAR2) RETURN BOOLEAN;
   -- Facts still missing on the ticket for a transition (comma list) — lets Page 10 explain
   -- why a button is disabled. NULL when nothing is missing.
   FUNCTION missing_facts(p_ticket_id IN NUMBER, p_to_status_code IN VARCHAR2) RETURN VARCHAR2;

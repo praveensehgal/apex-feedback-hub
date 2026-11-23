@@ -82,6 +82,16 @@ CREATE OR REPLACE PACKAGE BODY afh_workflow_pkg AS
     RETURN afh_workflow_int_pkg.missing_facts(l_rule, l_t, empty_payload) IS NULL;
   END can_transition;
 
+  FUNCTION transition_offered(p_ticket_id IN NUMBER, p_to_status_code IN VARCHAR2) RETURN BOOLEAN IS
+    l_t    afh_tickets%ROWTYPE;
+    l_rule afh_workflow_int_pkg.t_rule;
+  BEGIN
+    l_t    := ticket_row(p_ticket_id);
+    l_rule := afh_workflow_int_pkg.find_rule(l_t.status_code, UPPER(TRIM(p_to_status_code)));
+    RETURN l_rule.workflow_transition_id IS NOT NULL
+       AND afh_workflow_int_pkg.actor_allowed(l_rule, l_t);
+  END transition_offered;
+
   FUNCTION missing_facts(p_ticket_id IN NUMBER, p_to_status_code IN VARCHAR2) RETURN VARCHAR2 IS
     l_t    afh_tickets%ROWTYPE;
     l_rule afh_workflow_int_pkg.t_rule;
