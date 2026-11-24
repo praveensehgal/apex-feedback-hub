@@ -571,6 +571,7 @@ wwv_flow_imp_page.create_report_region(
 ,p_source_type=>'NATIVE_SQL_REPORT'
 ,p_query_type=>'SQL'
 ,p_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'SELECT attribute, value, seq FROM (',
 'SELECT ''Priority'' AS attribute, priority_label || CASE WHEN priority_code <> proposed_priority_code THEN '' (proposed '' || proposed_priority_label || '')'' END AS value, 1 AS seq FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
 'UNION ALL SELECT ''Severity'', severity_label || CASE WHEN severity_code <> proposed_severity_code THEN '' (proposed '' || proposed_severity_label || '')'' END, 2 FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
 'UNION ALL SELECT ''Impact'', impact_label || CASE WHEN impact_code <> proposed_impact_code THEN '' (proposed '' || proposed_impact_label || '')'' END, 3 FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
@@ -582,7 +583,7 @@ wwv_flow_imp_page.create_report_region(
 'UNION ALL SELECT ''Followers'', TO_CHAR(follower_count), 9 FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
 'UNION ALL SELECT ''Affected users'', TO_CHAR(affected_count), 10 FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
 'UNION ALL SELECT ''Last activity'', TO_CHAR(last_activity_at, ''DD Mon YYYY HH24:MI''), 11 FROM afh_v_ticket_detail WHERE ticket_id = :P10_TICKET_ID',
-'ORDER BY seq'))
+') ORDER BY seq'))
 ,p_ajax_enabled=>'Y'
 ,p_lazy_loading=>false
 ,p_query_row_template=>2100515124465797522
@@ -646,6 +647,7 @@ wwv_flow_imp_page.create_report_region(
 ,p_source_type=>'NATIVE_SQL_REPORT'
 ,p_query_type=>'SQL'
 ,p_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'SELECT attribute, value, seq FROM (',
 'SELECT ''Captured'' AS attribute, TO_CHAR(captured_at, ''DD Mon YYYY HH24:MI:SS'') AS value, 1 AS seq FROM afh_v_ticket_context_summary WHERE ticket_id = :P10_TICKET_ID AND is_latest_yn = ''Y''',
 'UNION ALL SELECT ''Result'', capture_result_code || '' (items '' || item_result_code || '', screenshot '' || screenshot_result_code || '', debug '' || debug_result_code || '')'', 2 FROM afh_v_ticket_context_summary WHERE ticket_id = :P10_TICKET_ID AND is_lates'
 ||'t_yn = ''Y''',
@@ -653,7 +655,7 @@ unistr('UNION ALL SELECT ''Items'', item_total || '' captured \00B7 '' || item_c
 unistr('UNION ALL SELECT ''Browser'', browser_name || '' '' || browser_version || '' \00B7 '' || os_name || '' \00B7 '' || device_type || '' \00B7 '' || viewport, 4 FROM afh_v_ticket_context_summary WHERE ticket_id = :P10_TICKET_ID AND is_latest_yn = ''Y'''),
 unistr('UNION ALL SELECT ''Locale'', locale || '' \00B7 '' || time_zone || '' \00B7 APEX '' || apex_version, 5 FROM afh_v_ticket_context_summary WHERE ticket_id = :P10_TICKET_ID AND is_latest_yn = ''Y'''),
 'UNION ALL SELECT ''Partial reason'', partial_reason, 6 FROM afh_v_ticket_context_summary WHERE ticket_id = :P10_TICKET_ID AND is_latest_yn = ''Y'' AND partial_reason IS NOT NULL',
-'ORDER BY seq'))
+') ORDER BY seq'))
 ,p_required_role=>wwv_flow_imp.id(68798617960373404)
 ,p_ajax_enabled=>'Y'
 ,p_lazy_loading=>false
