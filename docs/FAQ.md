@@ -424,6 +424,10 @@ New -> Under Review -> Accepted -> Planned -> In Progress -> Ready for Testing -
             +-> More Information Needed (answering moves it back to Under Review)
 ```
 
+A developer can also skip testing: **Resolve** moves a ticket from Under Review, Accepted or In
+Progress straight to Resolved with a resolution note, for questions and fixes that need no
+separate tester. The two-person test path stays available.
+
 A ticket can also end as **Duplicate**, **Rejected** or **Cannot Reproduce**. **Reopened**
 brings a closed or resolved ticket back for triage. The final statuses are Closed, Duplicate,
 Rejected and Cannot Reproduce.
@@ -439,7 +443,8 @@ Developers and above move tickets. Some transitions need facts before the Hub ac
 | To In Progress | An assignee |
 | In Progress to Ready for Testing | Root cause, resolution and a test request |
 | Ready for Testing to Resolved or back to In Progress | A passed or failed test, recorded by the assigned tester or a developer |
-| To More Information Needed, Rejected or Cannot Reproduce | A reason |
+| Under Review, Accepted or In Progress to Resolved (Resolve, no tester) | A resolution note |
+| To More Information Needed, Rejected or Cannot Reproduce | A reason. Reject is offered from Under Review, More Information Needed, Accepted and In Progress |
 | To Duplicate | A master ticket and a reason |
 | Reopen | A reason. The reporter or the tester can reopen a Resolved ticket, and must add evidence. Only developers or admins can reopen a ticket from a final status |
 

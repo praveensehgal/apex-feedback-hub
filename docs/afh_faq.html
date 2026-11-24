@@ -228,6 +228,7 @@
 <section class="afh-faq-sec" id="faq-s6"><h2><span class="afh-faq-num">06</span>Tickets and workflow<span class="afh-faq-count">12</span></h2><details class="afh-faq-qa" id="faq-what-does-a-ticket-go-through"><summary>What does a ticket go through?</summary><div class="afh-faq-a"><pre><code>New -&gt; Under Review -&gt; Accepted -&gt; Planned -&gt; In Progress -&gt; Ready for Testing -&gt; Resolved -&gt; Closed
             |
             +-&gt; More Information Needed (answering moves it back to Under Review)</code></pre>
+<p>A developer can also skip testing: <strong>Resolve</strong> moves a ticket from Under Review, Accepted or In Progress straight to Resolved with a resolution note, for questions and fixes that need no separate tester. The two-person test path stays available.</p>
 <p>A ticket can also end as <strong>Duplicate</strong>, <strong>Rejected</strong> or <strong>Cannot Reproduce</strong>. <strong>Reopened</strong> brings a closed or resolved ticket back for triage. The final statuses are Closed, Duplicate, Rejected and Cannot Reproduce.</p></div></details><details class="afh-faq-qa" id="faq-who-can-move-a-ticket-and-what-does-each-step-require"><summary>Who can move a ticket, and what does each step require?</summary><div class="afh-faq-a"><p>Developers and above move tickets. Some transitions need facts before the Hub accepts them:</p>
 <table>
 <thead>
@@ -258,8 +259,12 @@
 <td>A passed or failed test, recorded by the assigned tester or a developer</td>
 </tr>
 <tr>
+<td>Under Review, Accepted or In Progress to Resolved (Resolve, no tester)</td>
+<td>A resolution note</td>
+</tr>
+<tr>
 <td>To More Information Needed, Rejected or Cannot Reproduce</td>
-<td>A reason</td>
+<td>A reason. Reject is offered from Under Review, More Information Needed, Accepted and In Progress</td>
 </tr>
 <tr>
 <td>To Duplicate</td>

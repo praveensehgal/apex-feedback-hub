@@ -48,7 +48,7 @@ BEGIN
   st('PLANNED',          'Planned',                 50, 'N', 'info',    'Scheduled for a target release or planning note recorded.');
   st('IN_PROGRESS',      'In Progress',             60, 'N', 'info',    'Assigned and being worked on.');
   st('READY_TEST',       'Ready for Testing',       70, 'N', 'warning', 'A fix is ready and a test request is open.');
-  st('RESOLVED',         'Resolved',                80, 'N', 'success', 'Validation passed; closes automatically after the configured delay.');
+  st('RESOLVED',         'Resolved',                80, 'N', 'success', 'Fixed or answered; closes automatically after the configured delay.');
   st('CLOSED',           'Closed',                  90, 'Y', 'neutral', 'Work complete. Developers or administrators may reopen.');
   st('DUPLICATE',        'Duplicate',              100, 'Y', 'neutral', 'Merged into a master ticket.');
   st('REJECTED',         'Rejected',               110, 'Y', 'danger',  'Will not be addressed; a public reason was given.');
@@ -61,6 +61,7 @@ BEGIN
 
   tr('UNDER_REVIEW', 'MORE_INFO',        'DEVELOPER', NULL,              'REASON',                             'Y', 'Request information', 10, 'Public question and response task');
   tr('UNDER_REVIEW', 'ACCEPTED',         'DEVELOPER', NULL,              'CLASSIFICATION',                     'N', 'Accept',              20, 'Official classification confirmed');
+  tr('UNDER_REVIEW', 'RESOLVED',         'DEVELOPER', NULL,              'RESOLUTION',                         'N', 'Resolve',             25, 'Answered or fixed on the spot; resolution note, no tester');
   tr('UNDER_REVIEW', 'REJECTED',         'DEVELOPER', NULL,              'REASON',                             'Y', 'Reject',              30, 'Public reason');
   tr('UNDER_REVIEW', 'CANNOT_REPRODUCE', 'DEVELOPER', NULL,              'REASON',                             'Y', 'Cannot reproduce',    40, 'Reproduction notes and environment');
   tr('UNDER_REVIEW', 'DUPLICATE',        'DEVELOPER', NULL,              'MASTER_TICKET,REASON',               'N', 'Mark duplicate',      50, 'Master ticket and reason');
@@ -71,12 +72,16 @@ BEGIN
 
   tr('ACCEPTED',     'PLANNED',          'DEVELOPER', NULL,              'RELEASE_OR_NOTE',                    'N', 'Plan',                10, 'Target release or planning note');
   tr('ACCEPTED',     'IN_PROGRESS',      'DEVELOPER', NULL,              'ASSIGNEE',                           'N', 'Start work',          20, 'Assignee');
+  tr('ACCEPTED',     'RESOLVED',         'DEVELOPER', NULL,              'RESOLUTION',                         'N', 'Resolve',             25, 'Resolution note, no tester');
+  tr('ACCEPTED',     'REJECTED',         'DEVELOPER', NULL,              'REASON',                             'Y', 'Reject',              27, 'Public reason');
   tr('ACCEPTED',     'DUPLICATE',        'DEVELOPER', NULL,              'MASTER_TICKET,REASON',               'N', 'Mark duplicate',      30, 'Any nonterminal status -> Duplicate');
 
   tr('PLANNED',      'IN_PROGRESS',      'DEVELOPER', NULL,              'ASSIGNEE',                           'N', 'Start work',          10, 'Assignee');
   tr('PLANNED',      'DUPLICATE',        'DEVELOPER', NULL,              'MASTER_TICKET,REASON',               'N', 'Mark duplicate',      20, 'Any nonterminal status -> Duplicate');
 
   tr('IN_PROGRESS',  'READY_TEST',       'DEVELOPER', NULL,              'ROOT_CAUSE,RESOLUTION,TEST_REQUEST', 'N', 'Ready for testing',   10, 'Root cause, resolution, test request and target environment');
+  tr('IN_PROGRESS',  'RESOLVED',         'DEVELOPER', NULL,              'RESOLUTION',                         'N', 'Resolve',             15, 'Technician resolves without a separate tester; resolution note');
+  tr('IN_PROGRESS',  'REJECTED',         'DEVELOPER', NULL,              'REASON',                             'Y', 'Reject',              17, 'Public reason');
   tr('IN_PROGRESS',  'DUPLICATE',        'DEVELOPER', NULL,              'MASTER_TICKET,REASON',               'N', 'Mark duplicate',      20, 'Any nonterminal status -> Duplicate');
 
   tr('READY_TEST',   'IN_PROGRESS',      'DEVELOPER', 'ASSIGNED_TESTER', 'TEST_FAILED',                        'N', 'Test failed',         10, 'Failed test result and evidence');

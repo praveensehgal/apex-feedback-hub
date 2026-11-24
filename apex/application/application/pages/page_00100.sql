@@ -290,7 +290,7 @@ wwv_flow_imp_page.create_page_item(
 ,p_source_type=>'QUERY'
 ,p_display_as=>'NATIVE_TEXTAREA'
 ,p_cHeight=>3
-,p_display_when=>':P100_TO_STATUS = ''READY_TEST'''
+,p_display_when=>':P100_TO_STATUS IN (''READY_TEST'', ''RESOLVED'')'
 ,p_display_when2=>'PLSQL'
 ,p_display_when_type=>'EXPRESSION'
 ,p_field_template=>3031561666792084173

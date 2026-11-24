@@ -227,6 +227,12 @@ CREATE OR REPLACE PACKAGE BODY afh_security_int_pkg AS
         afh_security_pkg.raise_error(afh_security_pkg.c_err_val_001, 'Unknown role grant.');
     END;
     l_user := lock_user(l_row.user_id);
+    -- An administrator cannot remove their own admin role: it locks them out until another
+    -- administrator restores it, and the last administrator could lock everyone out.
+    IF l_row.role_code = afh_security_pkg.c_role_admin AND l_row.user_id = afh_security_pkg.current_user_id THEN
+      afh_security_pkg.raise_error(afh_security_pkg.c_err_val_001,
+        'You cannot remove your own administrator role. Ask another administrator to do it.');
+    END IF;
     DELETE FROM afh_user_roles WHERE user_role_id = p_user_role_id;
     afh_audit_pkg.log_event(
       p_entity_type  => afh_audit_pkg.c_entity_user_role,
